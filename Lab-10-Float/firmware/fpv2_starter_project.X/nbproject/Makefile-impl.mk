@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=fp_starter_project.X
+PROJECTNAME=fpv2_starter_project.X
 
 # Active Configuration
 DEFAULTCONF=sam_e51_cnano
