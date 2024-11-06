@@ -52,19 +52,6 @@
 
 #define MAX_PRINT_LEN 1000
 
-#define PLUS_INF ((0x7F800000))
-#define NEG_INF  ((0xFF800000))
-#define NAN_MASK  (~NEG_INF)
-
-#ifndef NAN
-#define NAN ((0.0/0.0))
-#endif
-
-#ifndef INFINITY
-#define INFINITY ((1.0f/0.0f))
-#define NEG_INFINITY ((-1.0f/0.0f))
-#endif
-
 
 static volatile bool isRTCExpired = false;
 static volatile bool changeTempSamplingRate = false;
@@ -96,24 +83,11 @@ static float tc[][2] = { // DO NOT MODIFY THESE!!!!!
     {     1.0,                  2.0},          //  TC #2
     {    -3.1,                  -1.2},         //  TC #3
     {    -7.25,                 -6.5},         //  TC #4
-    {     NAN,                  1.0},          //  TC #5
-    {    -1.0,                  NAN},          //  TC #6
     {     0.1,                  0.99},         //  TC #7
     {     1.14437421182e-28,   785.066650391}, //  TC #8
     { -4000.1,                   0.0,},        //  TC #9
     {    -1.9e-5,               -1.9e-5},      //  TC #10
     {     1.347e10,              2.867e-10},   //  TC #11
-
-    // PROF NOTE: Check subnormals: they seem to generate 0x00000000 as inputs
-    // PROF ADDENDUM 4/16/2024: Turns out some compilers and/or hardware convert
-    // subnormal numbers to 0. See:
-    // "Disabling subnormal floats at the code level"
-    // https://en.wikipedia.org/wiki/Subnormal_number
-    //
-    // Student's code should see these values as 0 and process accordingly
-    
-    {     1.4e-42,              -3.2e-43},     // subnormals   TC #12
-    {     -2.4e-42,              2.313e29},    // subnormals   TC #13
     {    INFINITY,           NEG_INFINITY},    //  TC #14
     {    NEG_INFINITY,           -6.24},       //  TC #15
     {     1.0,                   0.0}          //  TC #16
@@ -151,6 +125,22 @@ static void blinkAndLoopForever(uint32_t delay)
         while (isRTCExpired == false); // wait here until timer expires
     }
 
+}
+
+// reset the global mem values
+void resetAsmMem()
+{
+    f0 = f1 = fMax = NAN;
+    sb0 = sb1 = signBitMax = 0xDEADBEEF;
+    // adjusted UNBIASED (real) exponent
+    realExp0 = realExp1 = realExpMax = 0xC0DEBEEF; // adjusted UNBIASED exponent
+    // adjusted mantissa (hidden bit added when appropriate, 
+    // see lecture for details)
+    mant0 = mant1 = mantMax = 0xBEEFC0DE; // adjusted mantissa (hidden bit added when appropriate))
+    // exponent bits copied from float
+    storedExp0 = storedExp1 = storedExpMax = 0xFFFF; // exponent bits copied from float
+    nanValue = 0xFFFF;
+    return;
 }
 
 
@@ -216,6 +206,8 @@ int main ( void )
             if ( (debug_mode == false) ||
                  (debug_mode == true && debug_testcase == iteration) )
             {
+                resetAsmMem();
+                        
                 // Make the call to the assembly function
                 max = asmFmax(ff0,ff1);
 

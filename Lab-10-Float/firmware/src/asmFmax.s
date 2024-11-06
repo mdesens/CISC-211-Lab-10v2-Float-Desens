@@ -105,25 +105,11 @@ getSignBit:
 /********************************************************************
  function name: getExponent
     input:  r0: address of mem containing 32b float to be unpacked
-            r1: address of mem to store "stored" (biased)
-                bits 23-30 (exponent) 
-                BIASED means the unpacked value (range 0-255) copied
-                out of the original float. Make sure to shift exp to LSBs!
-                Use storedExp0, storedExp1, or storedExpMax for storage, 
-                as needed
-            r2: address of mem to store unpacked REAL exponent
-                bits 23-30 (exponent) 
-                REAL means the unpacked value - 127, stored as a signed
-                32b value. Range [-127,128]
-                NOTE: the real exponent may be changed later in asmFmax
-                depending on whether the float is subnormal or +/- zero
-                Use realExp0, realExp1, or realExpMax for storage, as needed
-    output: [r1]: mem location given by r1 contains the unpacked
-                  original (stored) exponent bits, in the lower 8b of the mem 
-                  location
-            [r2]: mem location given by r2 contains the unpacked
-                  and UNBIASED exponent bits, in the lower 8b of the mem 
-                  location
+      
+    output: r0: contains the unpacked original STORED exponent bits,
+                shifted into the lower 8b of the register. Range 0-255.
+            r1: always contains the REAL exponent, equal to r0 - 127
+                
 ********************************************************************/
 .global getExponent
 .type getExponent,%function
@@ -137,13 +123,11 @@ getExponent:
 /********************************************************************
  function name: getMantissa
     input:  r0: address of mem containing 32b float to be unpacked
-            r1: address of mem to store unpacked bits 0-22 (mantissa) 
-                of 32b float. 
-                NOTE: the mantissa may be changed later in asmFmax
-                depending on whether the float is subnormal or +/- zero
-                Use mant0, mant1, or mantMax for storage, as needed
-    output: [r1]: mem location given by r1 contains the unpacked
-                  mantissa bits
+      
+    output: r0: contains the mantissa WITHOUT the implied 1 bit added
+                to bit 23. The upper bits must all be set to 0.
+            r1: contains the mantissa WITH the implied 1 bit added
+                to bit 23. Upper bits are set to 0. 
 ********************************************************************/
 .global getMantissa
 .type getMantissa,%function
@@ -151,6 +135,59 @@ getMantissa:
     /* YOUR getMantissa CODE BELOW THIS LINE! Don't forget to push and pop! */
     
     /* YOUR getMantissa CODE ABOVE THIS LINE! Don't forget to push and pop! */
+   
+
+
+    
+/********************************************************************
+ function name: getMantissa
+    input:  r0: address of mem containing 32b float to be unpacked
+      
+    output: r0: contains the mantissa WITHOUT the implied 1 bit added
+                to bit 23. The upper bits must all be set to 0.
+            r1: contains the mantissa WITH the implied 1 bit added
+                to bit 23. Upper bits are set to 0. 
+********************************************************************/
+.global getMantissa
+.type getMantissa,%function
+getMantissa:
+    /* YOUR getMantissa CODE BELOW THIS LINE! Don't forget to push and pop! */
+    
+    /* YOUR getMantissa CODE ABOVE THIS LINE! Don't forget to push and pop! */
+   
+
+
+    
+/********************************************************************
+ function name: isZero
+    input:  r0: 
+      
+    output: r0: 
+            r1: 
+********************************************************************/
+.global isZero
+.type isZero,%function
+isZero:
+    /* YOUR isZero CODE BELOW THIS LINE! Don't forget to push and pop! */
+    
+    /* YOUR isZero CODE ABOVE THIS LINE! Don't forget to push and pop! */
+   
+
+
+    
+/********************************************************************
+ function name: isInfinity
+    input:  r0: 
+      
+    output: r0: 
+            r1: 
+********************************************************************/
+.global isInfinity
+.type isInfinity,%function
+isInfinity:
+    /* YOUR isInfinity CODE BELOW THIS LINE! Don't forget to push and pop! */
+    
+    /* YOUR isInfinity CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
 
 
@@ -174,14 +211,13 @@ where:
      
      signBitMax: 0 if the larger number is positive, otherwise 1
      realExpMax: The REAL exponent of the max value
-                 i.e. the STORED exponent - 127 (or -126, see lecture
-                 notes for details)
+                 (i.e. the STORED exponent - 127)
                  The value is stored as a signed 32b number
-     mantMax:    the lower 23b unpacked from the larger number
+     mantMax:    The lower 23b unpacked from the larger number.
+                 If not +INF or -INF, the mantissa MUST ALSO include
+                 the implied "1" in bit 23! (So the student's code
+                 must make sure to set that bit).
      
-     SEE LECTURE SLIDES FOR EXACT REQUIREMENTS on when and how to 
-     adjust exponent and max values!
-
 
 ********************************************************************/    
 .global asmFmax
