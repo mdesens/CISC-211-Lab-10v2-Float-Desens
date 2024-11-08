@@ -220,15 +220,15 @@ int main ( void )
     int iteration = 0;   
     int maxIterations = 0;
     
-    while ( true )
-    {
         // *******************************************************
         // Test the student's isInf assembly function
         //
-        if (testIsInf == true)
+    if (testIsInf == true)
+    {
+        iteration = 0;
+        maxIterations = sizeof(tc2)/sizeof(tc2[0]);
+        while ( true )
         {
-            iteration = 0;
-            maxIterations = sizeof(tc2)/sizeof(tc2[0]);
             
             // run the next test case when the timer expires
             if (isRTCExpired == true)
@@ -260,17 +260,29 @@ int main ( void )
                         break;
                     }
                 } // end of test case
-            } // end - test case loop           
-        } // end -- if testIsInf == true
+                ++iteration;
+                // check to see if in debug mode and this was the debug testcase,
+                // or if we are in normal test mode and have completed all tests.
+                // If either is true, exit the test loop.
+                if (iteration >= maxIterations)
+                {
+                    break; // tally the results and end program
+                }
+                ++iteration;
+            } // end - test case           
+        } // end -- while true
+    } // end -- if testIsInf == true
         
         
         // *******************************************************
         // Test the student's isZero assembly function
         //
-        if (testIsZero == true)
+    if (testIsZero == true)
+    {
+        iteration = 0;
+        maxIterations = sizeof(tc2)/sizeof(tc2[0]);
+        while ( true )
         {
-            iteration = 0;
-            maxIterations = sizeof(tc2)/sizeof(tc2[0]);
             
             // run the next test case when the timer expires
             if (isRTCExpired == true)
@@ -302,17 +314,28 @@ int main ( void )
                         break;
                     }
                 } // end of test case
-            } // end - test case loop           
-        } // end -- if testIsZero == true
+                ++iteration;
+                // check to see if in debug mode and this was the debug testcase,
+                // or if we are in normal test mode and have completed all tests.
+                // If either is true, exit the test loop.
+                if (iteration >= maxIterations)
+                {
+                    break; // tally the results and end program
+                }
+            } // end - test case           
+        } // end -- while true
+    } // end -- if testIsZero == true
         
         
         // *******************************************************
         // test the student's asmFmax function
         //
-        if (testFmax == true)
-        {
-            maxIterations = sizeof(tc)/sizeof(tc[0]);
-            
+    if (testFmax == true)
+    {
+        maxIterations = sizeof(tc)/sizeof(tc[0]);
+        iteration = 0;
+        while ( true )
+        {            
             // run the next test case when the timer expires
             if (isRTCExpired == true)
             {
@@ -372,11 +395,9 @@ int main ( void )
                     break; // tally the results and end program
                 }
 
-            }
-
-        } // end - if testMax == true
-
-    }
+            } // end - test case
+        } // end - if while loop
+    }  // end - if testFmax is true
 
 #if USING_HW
     if (testIsInf == true) // print results of asmIsInf tests
