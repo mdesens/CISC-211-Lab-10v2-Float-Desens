@@ -308,7 +308,7 @@ void calcExpectedValues(
         e->signBit = e->intVal >> 31; // could be +/- inf
         e->mantissa = 0x0;      // for +/- inf, this must be zero 
     }
-    else // either subnormal or normal float
+    else // either subnormal or normal float, or +/- 0
     {
         e->floatVal = input;
         e->intVal = reinterpret_float_to_uint(e->floatVal);
@@ -316,7 +316,7 @@ void calcExpectedValues(
         e->biasedExp = (e->intVal >>23) & 0xFF;
         e->unbiasedExp = e->biasedExp - 127;
         e->mantissa = e->intVal & 0x7FFFFF; // mask off LSB 23 bits
-        if(e->unbiasedExp == -127) // then this is a subnormal number
+        if(e->unbiasedExp == -127) // then this is 0 or a subnormal number
         {
             // adjust to -126, and skip adding hidden bit to mantissa
             e->unbiasedExp = -126;
@@ -332,8 +332,34 @@ void calcExpectedValues(
 }
 
 
+void testZeroResult(int testNum, 
+                      uint32_t testVal, // val passed to asm in r0
+                      uint32_t result,  // asm code result
+                      int32_t* passCnt,
+                      int32_t* failCnt,
+                      volatile bool * txComplete)
+{
+    *passCnt = 0;
+    *failCnt = 0;
+    
+}
 
-void testResult(int testNum, 
+
+void testInfResult(int testNum, 
+                      uint32_t testVal, // val passed to asm in r0
+                      uint32_t result,  // asm code result
+                      int32_t* passCnt,
+                      int32_t* failCnt,
+                      volatile bool * txComplete)
+{
+    *passCnt = 0;
+    *failCnt = 0;
+    
+}
+
+
+
+void testMaxResult(int testNum, 
                       float testVal1, // val passed to asm in r0
                       float testVal2, // val passed to asm in r1
                       float*pResult, // pointer to max chosen by asm code

@@ -69,6 +69,8 @@ static uint8_t uartTxBuffer[MAX_PRINT_LEN] = {0};
 // in r0 and r1. Otherwise, C forces them to be passed in the fp registers
 // s0 and s1
 extern float * asmFmax(uint32_t, uint32_t);
+extern uint32_t asmIsInf(uint32_t);
+extern uint32_t asmIsZero(uint32_t);
 
 
 // STUDENTS: To test a single test case,
@@ -76,6 +78,31 @@ extern float * asmFmax(uint32_t, uint32_t);
 //           set debug_testcase to the test case you want to test.
 bool     debug_mode = false;
 uint32_t debug_testcase = 0;
+
+static uint32_t tc2[] = {
+    0x7F800000, // +Inf
+    0x7F7FFFFF, // Very large +
+    0x7F400001, // Large +
+    0x7F400000, // Large +
+    0x7F000001, // Not so large +
+    0x7F000000, // Not so large +
+    0x00C00001, // Small +
+    0x00C00000, // Small +
+    0x00800001, // Very small +
+    0x00800000, // Very small +
+    0x00000000, // +0.0
+    0x80000000, // -0.0
+    0x80800000, // very small negative
+    0x80800001, // very small negative
+    0x80C00001, // Small -
+    0x80C00000, // Small -
+    0xFF000000, // Not so large -
+    0xFF000001, // Not so large -
+    0xFF400000, // Large -
+    0xFF400001, // Large -
+    0xFF7FFFFF, // Very large -
+    0xFFF00000  // -Inf
+};
 
 static float tc[][2] = { // DO NOT MODIFY THESE!!!!!
     {   1.175503179e-38, 1.10203478208e-38 },  //  Test case 0
@@ -172,70 +199,168 @@ int main ( void )
     int32_t totalPassCount = 0;
     int32_t totalFailCount = 0;
     int32_t totalTestCount = 0;
+    int32_t totalZeroPassCount = 0;
+    int32_t totalZeroFailCount = 0;
+    int32_t totalZeroTestCount = 0;
+    int32_t totalInfPassCount = 0;
+    int32_t totalInfFailCount = 0;
+    int32_t totalInfTestCount = 0;
+    int32_t totalMaxPassCount = 0;
+    int32_t totalMaxFailCount = 0;
+    int32_t totalMaxTestCount = 0;
     int iteration = 0;   
-    int maxIterations = sizeof(tc)/sizeof(tc[0]);
+    int maxIterations = 0;
     
     while ( true )
     {
-        if (isRTCExpired == true)
+        // *******************************************************
+        // Test the student's isInf assembly function
+        //
+        if (testIsInf == true)
         {
-            isRTCExpired = false;
+            iteration = 0;
+            maxIterations = sizeof(tc2)/sizeof(tc2[0]);
             
-            LED0_Toggle();
-            
-            // Set to true if you want to force specific values for debugging
-            if (false)
+            if (isRTCExpired == true)
             {
-                tc[iteration][0] = reinterpret_uint_to_float(0x0080003F);
-                tc[iteration][1] = reinterpret_uint_to_float(0x000FFF3F);
-            }
-            
-            // if you try to pass floats as floats to assy, they get put
-            // into s0,s1, etc registers. So need to fool C into thinking
-            // 32b ints are being passed instead, so that args are passed
-            // in r0 and r1
-            uint32_t ff0 = reinterpret_float_to_uint(tc[iteration][0]);
-            uint32_t ff1 = reinterpret_float_to_uint(tc[iteration][1]);
-            
-            // Place to store the result of the call to the assy function
-            float *max;
-            
-            // check to see if in debug mode and this is the testcase to debug,
-            // or if we are in normal test mode and running all test cases.
-            // If either is true, execute the test.
-            if ( (debug_mode == false) ||
-                 (debug_mode == true && debug_testcase == iteration) )
-            {
-                resetAsmMem();
-                        
-                // Make the call to the assembly function
-                max = asmFmax(ff0,ff1);
+                isRTCExpired = false;
 
-                testResult(iteration,tc[iteration][0],tc[iteration][1],
-                        max,
-                        &fMax,
-                        &passCount,
-                        &failCount,
-                        &isUSARTTxComplete);
-                totalPassCount += passCount;        
-                totalFailCount += failCount;        
-                totalTestCount += failCount + passCount;
-                if (debug_mode == true)
+                LED0_Toggle();
+
+                // check to see if in debug mode and this is the testcase to debug,
+                // or if we are in normal test mode and running all test cases.
+                // If either is true, execute the test.
+                if ( (debug_mode == false) ||
+                     (debug_mode == true && debug_testcase == iteration) )
                 {
-                    break;
-                }
-            }
-            ++iteration;
-            
-            // check to see if in debug mode and this was the debug testcase,
-            // or if we are in normal test mode and have completed all tests.
-            // If either is true, exit the test loop.
-            if (iteration >= maxIterations)
-            {
-                break; // tally the results and end program
-            }
 
-        }
+                    // Make the call to the assembly function
+                    int32_t result = asmisInf(tc2[iteration]);
+
+                    testInfResult(iteration,tc2[iteration],
+                            result,                            
+                            &passCount,
+                            &failCount,
+                            &isUSARTTxComplete);
+                    totalMaxPassCount += passCount;        
+                    totalMaxFailCount += failCount;        
+                    totalMaxTestCount += failCount + passCount;
+                    if (debug_mode == true)
+                    {
+                        break;
+                    }
+            }            
+        } // end -- if testIsInf == true
+        
+        
+        // *******************************************************
+        // Test the student's isZero assembly function
+        //
+        if (testIsZero == true)
+        {
+            iteration = 0;
+            maxIterations = sizeof(tc2)/sizeof(tc2[0]);
+            
+            if (isRTCExpired == true)
+            {
+                isRTCExpired = false;
+
+                LED0_Toggle();
+
+                // check to see if in debug mode and this is the testcase to debug,
+                // or if we are in normal test mode and running all test cases.
+                // If either is true, execute the test.
+                if ( (debug_mode == false) ||
+                     (debug_mode == true && debug_testcase == iteration) )
+                {
+
+                    // Make the call to the assembly function
+                    int32_t result = asmIsZero(tc2[iteration]);
+
+                    testZeroResult(iteration,tc2[iteration],
+                            result,                            
+                            &passCount,
+                            &failCount,
+                            &isUSARTTxComplete);
+                    totalMaxPassCount += passCount;        
+                    totalMaxFailCount += failCount;        
+                    totalMaxTestCount += failCount + passCount;
+                    if (debug_mode == true)
+                    {
+                        break;
+                    }
+            }            
+        } // end -- if testIsZero == true
+        
+        
+        // *******************************************************
+        // test the student's asmFmax function
+        //
+        if (testMax == true)
+        {
+            maxIterations = sizeof(tc)/sizeof(tc[0]);
+            
+            if (isRTCExpired == true)
+            {
+                isRTCExpired = false;
+
+                LED0_Toggle();
+
+                // Set to true if you want to force specific values for debugging
+                if (false)
+                {
+                    tc[iteration][0] = reinterpret_uint_to_float(0x0080003F);
+                    tc[iteration][1] = reinterpret_uint_to_float(0x000FFF3F);
+                }
+
+                // if you try to pass floats as floats to assy, they get put
+                // into s0,s1, etc registers. So need to fool C into thinking
+                // 32b ints are being passed instead, so that args are passed
+                // in r0 and r1
+                uint32_t ff0 = reinterpret_float_to_uint(tc[iteration][0]);
+                uint32_t ff1 = reinterpret_float_to_uint(tc[iteration][1]);
+
+                // Place to store the result of the call to the assy function
+                float *max;
+
+                // check to see if in debug mode and this is the testcase to debug,
+                // or if we are in normal test mode and running all test cases.
+                // If either is true, execute the test.
+                if ( (debug_mode == false) ||
+                     (debug_mode == true && debug_testcase == iteration) )
+                {
+                    resetAsmMem();
+
+                    // Make the call to the assembly function
+                    max = asmFmax(ff0,ff1);
+
+                    testMaxResult(iteration,tc[iteration][0],tc[iteration][1],
+                            max,
+                            &fMax,
+                            &passCount,
+                            &failCount,
+                            &isUSARTTxComplete);
+                    totalMaxPassCount += passCount;        
+                    totalMaxFailCount += failCount;        
+                    totalMaxTestCount += failCount + passCount;
+                    if (debug_mode == true)
+                    {
+                        break;
+                    }
+                }
+                ++iteration;
+
+                // check to see if in debug mode and this was the debug testcase,
+                // or if we are in normal test mode and have completed all tests.
+                // If either is true, exit the test loop.
+                if (iteration >= maxIterations)
+                {
+                    break; // tally the results and end program
+                }
+
+            }
+        } // end - if testMax == true
+
     }
 
 #if USING_HW

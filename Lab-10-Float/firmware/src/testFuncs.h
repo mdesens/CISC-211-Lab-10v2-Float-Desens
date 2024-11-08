@@ -195,7 +195,23 @@ void calcExpectedValues(
         expectedValues *e);   // ptr to struct where values will be stored
 
 
-void testResult(int testNum, 
+void testZeroResult(int testNum, 
+                      uint32_t testVal, // val passed to asm in r0
+                      uint32_t result,  // asm code result
+                      int32_t* passCnt,
+                      int32_t* failCnt,
+                      volatile bool * txComplete);
+
+
+void testInfResult(int testNum, 
+                      uint32_t testVal, // val passed to asm in r0
+                      uint32_t result,  // asm code result
+                      int32_t* passCnt,
+                      int32_t* failCnt,
+                      volatile bool * txComplete);
+
+
+void testMaxResult(int testNum, 
                       float testVal1, // val passed to asm in r0
                       float testVal2, // val passed to asm in r1
                       float*pResult, // pointer to max chosen by asm code

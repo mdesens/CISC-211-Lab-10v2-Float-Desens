@@ -108,7 +108,10 @@ getSignBit:
       
     output: r0: contains the unpacked original STORED exponent bits,
                 shifted into the lower 8b of the register. Range 0-255.
-            r1: always contains the REAL exponent, equal to r0 - 127
+            r1: always contains the REAL exponent, equal to r0 - 127.
+                It is a signed 32b value. This function doesn't
+                check for +/-Inf or +/-0, so r1 always contains
+                r0 - 127.
                 
 ********************************************************************/
 .global getExponent
@@ -140,54 +143,41 @@ getMantissa:
 
     
 /********************************************************************
- function name: getMantissa
-    input:  r0: address of mem containing 32b float to be unpacked
+ function name: asmIsZero
+    input:  r0: address of mem containing 32b float to be checked
+                for +/- 0
       
-    output: r0: contains the mantissa WITHOUT the implied 1 bit added
-                to bit 23. The upper bits must all be set to 0.
-            r1: contains the mantissa WITH the implied 1 bit added
-                to bit 23. Upper bits are set to 0. 
+    output: r0:  0 if floating point value is NOT +/- 0
+                 1 if floating point value is +0
+                -1 if floating point value is -0
+      
 ********************************************************************/
-.global getMantissa
-.type getMantissa,%function
-getMantissa:
-    /* YOUR getMantissa CODE BELOW THIS LINE! Don't forget to push and pop! */
+.global asmIsZero
+.type asmIsZero,%function
+asmIsZero:
+    /* YOUR asmIsZero CODE BELOW THIS LINE! Don't forget to push and pop! */
     
-    /* YOUR getMantissa CODE ABOVE THIS LINE! Don't forget to push and pop! */
+    /* YOUR asmIsZero CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
 
 
     
 /********************************************************************
- function name: isZero
-    input:  r0: 
+ function name: asmIsInf
+    input:  r0: address of mem containing 32b float to be checked
+                for +/- infinity
       
-    output: r0: 
-            r1: 
-********************************************************************/
-.global isZero
-.type isZero,%function
-isZero:
-    /* YOUR isZero CODE BELOW THIS LINE! Don't forget to push and pop! */
-    
-    /* YOUR isZero CODE ABOVE THIS LINE! Don't forget to push and pop! */
-   
-
-
-    
-/********************************************************************
- function name: isInfinity
-    input:  r0: 
+    output: r0:  0 if floating point value is NOT +/- infinity
+                 1 if floating point value is +infinity
+                -1 if floating point value is -infinity
       
-    output: r0: 
-            r1: 
 ********************************************************************/
-.global isInfinity
-.type isInfinity,%function
-isInfinity:
-    /* YOUR isInfinity CODE BELOW THIS LINE! Don't forget to push and pop! */
+.global asmIsInf
+.type asmIsInf,%function
+asmIsInf:
+    /* YOUR asmIsInf CODE BELOW THIS LINE! Don't forget to push and pop! */
     
-    /* YOUR isInfinity CODE ABOVE THIS LINE! Don't forget to push and pop! */
+    /* YOUR asmIsInf CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
 
 
@@ -210,14 +200,14 @@ where:
      following global variables prior to returning to the caller:
      
      signBitMax: 0 if the larger number is positive, otherwise 1
-     realExpMax: The REAL exponent of the max value
-                 (i.e. the STORED exponent - 127)
-                 The value is stored as a signed 32b number
+     realExpMax: The REAL exponent of the max value, adjusted for
+                 (i.e. the STORED exponent - (127 o 126), see lab instructions)
+                 The value must be a signed 32b number
      mantMax:    The lower 23b unpacked from the larger number.
-                 If not +INF or -INF, the mantissa MUST ALSO include
+                 If not +/-INF and not +/- 0, the mantissa MUST ALSO include
                  the implied "1" in bit 23! (So the student's code
                  must make sure to set that bit).
-     
+                 All bits above bit 23 must always be set to 0.     
 
 ********************************************************************/    
 .global asmFmax
