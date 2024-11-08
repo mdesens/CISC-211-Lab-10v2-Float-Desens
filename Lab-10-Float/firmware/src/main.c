@@ -52,6 +52,13 @@
 
 #define MAX_PRINT_LEN 1000
 
+#define FMAX_TEST_PTS    ((int32_t) 20)
+#define IS_ZERO_TEST_PTS ((int32_t) 10)
+#define IS_INF_TEST_PTS  ((int32_t) 10)
+
+bool testIsInf  = true;
+bool testIsZero = true;
+bool testFmax   = true;
 
 static volatile bool isRTCExpired = false;
 static volatile bool changeTempSamplingRate = false;
@@ -79,8 +86,9 @@ extern uint32_t asmIsZero(uint32_t);
 bool     debug_mode = false;
 uint32_t debug_testcase = 0;
 
-static uint32_t tc2[] = {
-    0x7F800000, // +Inf
+// these are the test cases used to test asmIsZero and asmIsInf
+static uint32_t tc2[] = { // DO NOT MODIFY THESE!!!!!
+    PLUS_INF,   // +Inf (see definition in testFuncs.h)
     0x7F7FFFFF, // Very large +
     0x7F400001, // Large +
     0x7F400000, // Large +
@@ -90,8 +98,8 @@ static uint32_t tc2[] = {
     0x00C00000, // Small +
     0x00800001, // Very small +
     0x00800000, // Very small +
-    0x00000000, // +0.0
-    0x80000000, // -0.0
+    PLUS_ZERO,  // +0.0
+    NEG_ZERO,   // -0.0
     0x80800000, // very small negative
     0x80800001, // very small negative
     0x80C00001, // Small -
@@ -101,9 +109,10 @@ static uint32_t tc2[] = {
     0xFF400000, // Large -
     0xFF400001, // Large -
     0xFF7FFFFF, // Very large -
-    0xFFF00000  // -Inf
+    NEG_INF     // -Inf
 };
 
+// These are the test cases used to test asmFmax
 static float tc[][2] = { // DO NOT MODIFY THESE!!!!!
     {   1.175503179e-38, 1.10203478208e-38 },  //  Test case 0
     {    -0.2,                 -0.1},          //  Test case 1
@@ -221,6 +230,7 @@ int main ( void )
             iteration = 0;
             maxIterations = sizeof(tc2)/sizeof(tc2[0]);
             
+            // run the next test case when the timer expires
             if (isRTCExpired == true)
             {
                 isRTCExpired = false;
@@ -235,21 +245,22 @@ int main ( void )
                 {
 
                     // Make the call to the assembly function
-                    int32_t result = asmisInf(tc2[iteration]);
+                    int32_t result = asmIsInf(tc2[iteration]);
 
                     testInfResult(iteration,tc2[iteration],
                             result,                            
                             &passCount,
                             &failCount,
                             &isUSARTTxComplete);
-                    totalMaxPassCount += passCount;        
-                    totalMaxFailCount += failCount;        
-                    totalMaxTestCount += failCount + passCount;
+                    totalInfPassCount += passCount;        
+                    totalInfFailCount += failCount;        
+                    totalInfTestCount += failCount + passCount;
                     if (debug_mode == true)
                     {
                         break;
                     }
-            }            
+                } // end of test case
+            } // end - test case loop           
         } // end -- if testIsInf == true
         
         
@@ -261,6 +272,7 @@ int main ( void )
             iteration = 0;
             maxIterations = sizeof(tc2)/sizeof(tc2[0]);
             
+            // run the next test case when the timer expires
             if (isRTCExpired == true)
             {
                 isRTCExpired = false;
@@ -282,24 +294,26 @@ int main ( void )
                             &passCount,
                             &failCount,
                             &isUSARTTxComplete);
-                    totalMaxPassCount += passCount;        
-                    totalMaxFailCount += failCount;        
-                    totalMaxTestCount += failCount + passCount;
+                    totalZeroPassCount += passCount;        
+                    totalZeroFailCount += failCount;        
+                    totalZeroTestCount += failCount + passCount;
                     if (debug_mode == true)
                     {
                         break;
                     }
-            }            
+                } // end of test case
+            } // end - test case loop           
         } // end -- if testIsZero == true
         
         
         // *******************************************************
         // test the student's asmFmax function
         //
-        if (testMax == true)
+        if (testFmax == true)
         {
             maxIterations = sizeof(tc)/sizeof(tc[0]);
             
+            // run the next test case when the timer expires
             if (isRTCExpired == true)
             {
                 isRTCExpired = false;
@@ -359,35 +373,130 @@ int main ( void )
                 }
 
             }
+
         } // end - if testMax == true
 
     }
 
 #if USING_HW
-    static char * t1 = "ALL TESTS COMPLETE!";
-    static char * t2 = "DEBUG MODE RESULT! IGNORE SCORE.";
-    char * testString = t1;
-    if (debug_mode == true)
+    if (testIsInf == true) // print results of asmIsInf tests
     {
-        testString = t2;
+        static char * t1 = "Results";
+        static char * t2 = "DEBUG MODE RESULT! IGNORE SCORE.";
+        char * testString = t1;
+        if (debug_mode == true)
+        {
+            testString = t2;
+        }
+
+        snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
+                "========= %s: asmIsInf Function Test %s\r\n"
+                "tests passed: %ld \r\n"
+                "tests failed: %ld \r\n"
+                "total tests:  %ld \r\n"
+                "score: %ld/%ld points \r\n\r\n",
+                (char *) nameStrPtr, testString,
+                totalInfPassCount,
+                totalInfFailCount,
+                totalInfTestCount,
+                IS_INF_TEST_PTS*totalInfPassCount/totalInfTestCount, IS_INF_TEST_PTS); 
+
+        isUSARTTxComplete = false;
+        printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
     }
 
-    snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
-            "========= %s: asmFmax.s %s\r\n"
-            "tests passed: %ld \r\n"
-            "tests failed: %ld \r\n"
-            "total tests:  %ld \r\n"
-            "score: %ld/20 points \r\n\r\n",
-            (char *) nameStrPtr, testString,
-            totalPassCount,
-            totalFailCount,
-            totalTestCount,
-            20*totalPassCount/totalTestCount); 
-            isUSARTTxComplete = false;
-    
-    printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
 
-    blinkAndLoopForever(PERIOD_1S);
+    if (testIsZero == true) // print results of asmIsZero tests
+    {
+        static char * t1 = "Results";
+        static char * t2 = "DEBUG MODE RESULT! IGNORE SCORE.";
+        char * testString = t1;
+        if (debug_mode == true)
+        {
+            testString = t2;
+        }
+
+        snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
+                "========= %s: asmIsZero Function Test %s\r\n"
+                "tests passed: %ld \r\n"
+                "tests failed: %ld \r\n"
+                "total tests:  %ld \r\n"
+                "score: %ld/%ld points \r\n\r\n",
+                (char *) nameStrPtr, testString,
+                totalZeroPassCount,
+                totalZeroFailCount,
+                totalZeroTestCount,
+                IS_ZERO_TEST_PTS*totalZeroPassCount/totalZeroTestCount, IS_ZERO_TEST_PTS); 
+
+        isUSARTTxComplete = false;
+        printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
+    }
+
+    
+    if (testFmax == true) // print results of asmFmax tests
+    {
+        static char * t1 = "Results";
+        static char * t2 = "DEBUG MODE RESULT! IGNORE SCORE.";
+        char * testString = t1;
+        if (debug_mode == true)
+        {
+            testString = t2;
+        }
+
+        snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
+                "========= %s: asmFmax Function Test %s\r\n"
+                "tests passed: %ld \r\n"
+                "tests failed: %ld \r\n"
+                "total tests:  %ld \r\n"
+                "score: %ld/%ld points \r\n\r\n",
+                (char *) nameStrPtr, testString,
+                totalMaxPassCount,
+                totalMaxFailCount,
+                totalMaxTestCount,
+                FMAX_TEST_PTS*totalMaxPassCount/totalMaxTestCount, FMAX_TEST_PTS); 
+
+        isUSARTTxComplete = false;
+        printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
+    }
+     
+    if (debug_mode == false &&
+            testIsInf == true &&
+            testIsZero == true &&
+            testFmax == true)
+    {
+        static char * t1 = "ALL TESTS COMPLETE!";
+        static char * t2 = "DEBUG MODE RESULT! IGNORE SCORE.";
+        char * testString = t1;
+        if (debug_mode == true)
+        {
+            testString = t2;
+        }
+
+        int32_t totalTestPoints = IS_ZERO_TEST_PTS + 
+                                  IS_INF_TEST_PTS + 
+                                  FMAX_TEST_PTS;
+        totalPassCount = totalInfPassCount + totalZeroPassCount + totalMaxPassCount;
+        totalFailCount = totalInfFailCount + totalZeroFailCount + totalMaxFailCount;
+        totalTestCount = totalInfTestCount + totalZeroTestCount + totalMaxTestCount;
+        
+        
+        snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
+                "========= %s: asmFmax SUMMARY: %s\r\n"
+                "tests passed: %ld \r\n"
+                "tests failed: %ld \r\n"
+                "total tests:  %ld \r\n"
+                "score: %ld/%ld points \r\n\r\n",
+                (char *) nameStrPtr, testString,
+                totalPassCount,
+                totalFailCount,
+                totalTestCount,
+                totalTestPoints*totalPassCount/totalTestCount, totalTestPoints); 
+
+        isUSARTTxComplete = false;
+        printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
+
+        blinkAndLoopForever(PERIOD_1S);
+    }
 
 #else
             isRTCExpired = true;

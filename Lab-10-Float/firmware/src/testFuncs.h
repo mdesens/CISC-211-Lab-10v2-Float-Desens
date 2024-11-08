@@ -68,8 +68,10 @@ extern "C" {
 // #define EXAMPLE_CONSTANT 0
 
 
-#define PLUS_INF ((0x7F800000))
-#define NEG_INF  ((0xFF800000))
+#define PLUS_INF  ((0x7F800000))
+#define NEG_INF   ((0xFF800000))
+#define PLUS_ZERO ((0x0))
+#define NEG_ZERO  ((0x80000000))
 #define NAN_MASK  (~NEG_INF)
 
 #ifndef NAN

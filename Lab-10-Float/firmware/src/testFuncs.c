@@ -331,7 +331,7 @@ void calcExpectedValues(
     return;
 }
 
-
+// Code to test student's asmIsZero function
 void testZeroResult(int testNum, 
                       uint32_t testVal, // val passed to asm in r0
                       uint32_t result,  // asm code result
@@ -339,12 +339,51 @@ void testZeroResult(int testNum,
                       int32_t* failCnt,
                       volatile bool * txComplete)
 {
+    int32_t expectedResult = 0;
     *passCnt = 0;
     *failCnt = 0;
+    char * pfString; // pass/fail string
     
+    // extract the expected result
+    if (testVal == PLUS_ZERO)
+    {
+        expectedResult = 1;  // +0.0
+    }
+    else if (testVal == NEG_ZERO)
+    {
+        expectedResult = -1; // -0.0
+    }
+    
+    // compare expected to actual and set pass/fail
+    if (result == expectedResult)
+    {
+        *passCnt += 1;
+        pfString = pass;
+    }
+    else
+    {
+        *failCnt += 1;
+        pfString = fail;
+    }
+    
+    snprintf((char*)txBuffer, MAX_PRINT_LEN,
+        "========= asmIsZero Test Number: %d; %s\r\n"
+        "hex input value:     0x%08lx\r\n"
+        "expected asmIsZero result: %3ld\r\n"
+        "actual   asmIsZero result: %3ld\r\n"
+        "\r\n",
+        testNum, pfString,
+        testVal,
+        expectedResult,
+        result); 
+    
+    printAndWait((char*)txBuffer,txComplete);
+
+    return;
 }
 
 
+// Code to test student's asmIsInf function
 void testInfResult(int testNum, 
                       uint32_t testVal, // val passed to asm in r0
                       uint32_t result,  // asm code result
@@ -352,9 +391,47 @@ void testInfResult(int testNum,
                       int32_t* failCnt,
                       volatile bool * txComplete)
 {
+    int32_t expectedResult = 0;
     *passCnt = 0;
     *failCnt = 0;
+    char * pfString; // pass/fail string
     
+    // extract the expected result
+    if (testVal == PLUS_INF)
+    {
+        expectedResult = 1;  // +Inf
+    }
+    else if (testVal == NEG_INF)
+    {
+        expectedResult = -1; // -Inf
+    }
+    
+    // compare expected to actual and set pass/fail
+    if (result == expectedResult)
+    {
+        *passCnt += 1;
+        pfString = pass;
+    }
+    else
+    {
+        *failCnt += 1;
+        pfString = fail;
+    }
+    
+    snprintf((char*)txBuffer, MAX_PRINT_LEN,
+        "========= asmIsInf Test Number: %d; %s\r\n"
+        "hex input value:     0x%08lx\r\n"
+        "expected asmIsInf result: %3ld\r\n"
+        "actual   asmIsInf result: %3ld\r\n"
+        "\r\n",
+        testNum, pfString,
+        testVal,
+        expectedResult,
+        result); 
+    
+    printAndWait((char*)txBuffer,txComplete);
+
+    return;
 }
 
 
@@ -362,7 +439,7 @@ void testInfResult(int testNum,
 void testMaxResult(int testNum, 
                       float testVal1, // val passed to asm in r0
                       float testVal2, // val passed to asm in r1
-                      float*pResult, // pointer to max chosen by asm code
+                      float *pResult, // pointer to max chosen by asm code
                       float *pGood, //ptr to correct location
                       int32_t* passCnt,
                       int32_t* failCnt,
@@ -445,7 +522,7 @@ void testMaxResult(int testNum,
     checkMantissa(e.mantissa,mantMax,e.biasedExp,passCnt,failCnt,&mantCheck);
        
     snprintf((char*)txBuffer, MAX_PRINT_LEN,
-            "========= Test Number: %d\r\n"
+            "========= asmFmax Test Number: %d\r\n"
             "input1:       %8.4e; input2:     %8.4e \r\n"
             "hex inp1:     0x%08lx; hex inp2: 0x%08lx\r\n"
             "%s: expected max: %8.4e; asm result: %8.4e\r\n"
