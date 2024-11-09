@@ -60,12 +60,16 @@
 // STUDENTS: To test a single test case,
 //           set debug_mode to true
 //           set debug_testcase to the test case you want to test.
-bool     debug_mode = true;
+bool     debug_mode = false;
 uint32_t debug_testcase = 2;
 
-bool testIsInf  = false;
+// STUDENTS: if you don't want to run all three test types, 
+//           set the ones you don't want to run to false. But 
+//           make sure to set them all back to true
+//           at the end, to make sure everything works!
+bool testIsInf  = true;
 bool testIsZero = true;
-bool testFmax   = false;
+bool testFmax   = true;
 
 static volatile bool isRTCExpired = false;
 static volatile bool changeTempSamplingRate = false;
