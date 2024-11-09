@@ -3,13 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/main.c</file>
             <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/testFuncs.c</file>
             <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/asmExterns.h</file>
-            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/printFuncs.c</file>
-            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/main.c</file>
-            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/printFuncs.h</file>
-            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/asmFmax.s</file>
             <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/testFuncs.h</file>
+            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/printFuncs.h</file>
+            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/printFuncs.c</file>
+            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/asmFmax.s</file>
+            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/config/sam_e51_cnano/peripheral/clock/plib_clock.c</file>
+            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/config/sam_e51_cnano/exceptions.c</file>
         </group>
     </open-files>
 </project-private>
