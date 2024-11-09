@@ -249,6 +249,7 @@
       <itemPath>../src/testFuncs.c</itemPath>
       <itemPath>../src/testFuncs.h</itemPath>
       <itemPath>../src/asmExterns.h</itemPath>
+      <itemPath>../src/TEST_asmFmax_with_solution.prof.s</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -298,6 +299,8 @@
         <makeCustomizationEnableLongLines>false</makeCustomizationEnableLongLines>
         <makeCustomizationNormalizeHexFile>false</makeCustomizationNormalizeHexFile>
       </makeCustomizationType>
+      <item path="../src/asmFmax.s" ex="true" overriding="false">
+      </item>
       <AtmelIceTool>
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="communication.interface" value="swd"/>

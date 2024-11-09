@@ -58,7 +58,7 @@ mant1: .word 0
  
 @ use these locations to store fMax values
 fMax: .word 0
-signBitMax: .word 0
+sbMax: .word 0
 storedExpMax: .word 0
 realExpMax: .word 0
 mantMax: .word 0

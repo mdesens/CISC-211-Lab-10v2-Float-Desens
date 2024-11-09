@@ -40,7 +40,7 @@ extern "C" {
     extern uint32_t nameStrPtr;
 
     extern float f0,f1,fMax;
-    extern uint32_t sb0,sb1,signBitMax;
+    extern uint32_t sb0,sb1,sbMax;
     // adjusted UNBIASED (real) exponent
     extern int32_t realExp0,realExp1,realExpMax; // adjusted UNBIASED exponent
     // adjusted mantissa (hidden bit added when appropriate, 

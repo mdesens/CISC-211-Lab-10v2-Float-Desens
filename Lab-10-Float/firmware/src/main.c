@@ -52,13 +52,20 @@
 
 #define MAX_PRINT_LEN 1000
 
-#define FMAX_TEST_PTS    ((int32_t) 20)
-#define IS_ZERO_TEST_PTS ((int32_t) 10)
-#define IS_INF_TEST_PTS  ((int32_t) 10)
+#define FMAX_MAX_TEST_PTS    ((int32_t) 20)
+#define IS_ZERO_MAX_TEST_PTS ((int32_t) 10)
+#define IS_INF_MAX_TEST_PTS  ((int32_t) 10)
+#define MAX_POSSIBLE_TEST_PTS ((int32_t)(FMAX_MAX_TEST_PTS+IS_ZERO_MAX_TEST_PTS+IS_INF_MAX_TEST_PTS))
 
-bool testIsInf  = true;
+// STUDENTS: To test a single test case,
+//           set debug_mode to true
+//           set debug_testcase to the test case you want to test.
+bool     debug_mode = true;
+uint32_t debug_testcase = 2;
+
+bool testIsInf  = false;
 bool testIsZero = true;
-bool testFmax   = true;
+bool testFmax   = false;
 
 static volatile bool isRTCExpired = false;
 static volatile bool changeTempSamplingRate = false;
@@ -79,12 +86,6 @@ extern float * asmFmax(uint32_t, uint32_t);
 extern uint32_t asmIsInf(uint32_t);
 extern uint32_t asmIsZero(uint32_t);
 
-
-// STUDENTS: To test a single test case,
-//           set debug_mode to true
-//           set debug_testcase to the test case you want to test.
-bool     debug_mode = false;
-uint32_t debug_testcase = 0;
 
 // these are the test cases used to test asmIsZero and asmIsInf
 static uint32_t tc2[] = { // DO NOT MODIFY THESE!!!!!
@@ -167,7 +168,7 @@ static void blinkAndLoopForever(uint32_t delay)
 void resetAsmMem()
 {
     f0 = f1 = fMax = NAN;
-    sb0 = sb1 = signBitMax = 0xDEADBEEF;
+    sb0 = sb1 = sbMax = 0xDEADBEEF;
     // adjusted UNBIASED (real) exponent
     realExp0 = realExp1 = realExpMax = 0xC0DEBEEF; // adjusted UNBIASED exponent
     // adjusted mantissa (hidden bit added when appropriate, 
@@ -214,9 +215,12 @@ int main ( void )
     int32_t totalInfPassCount = 0;
     int32_t totalInfFailCount = 0;
     int32_t totalInfTestCount = 0;
-    int32_t totalMaxPassCount = 0;
-    int32_t totalMaxFailCount = 0;
-    int32_t totalMaxTestCount = 0;
+    int32_t totalFmaxPassCount = 0;
+    int32_t totalFmaxFailCount = 0;
+    int32_t totalFmaxTestCount = 0;
+    int32_t isInfTestPoints = 0;
+    int32_t isZeroTestPoints = 0;
+    int32_t fmaxTestPoints = 0;
     int iteration = 0;   
     int maxIterations = 0;
     
@@ -268,7 +272,6 @@ int main ( void )
                 {
                     break; // tally the results and end program
                 }
-                ++iteration;
             } // end - test case           
         } // end -- while true
     } // end -- if testIsInf == true
@@ -377,9 +380,9 @@ int main ( void )
                             &passCount,
                             &failCount,
                             &isUSARTTxComplete);
-                    totalMaxPassCount += passCount;        
-                    totalMaxFailCount += failCount;        
-                    totalMaxTestCount += failCount + passCount;
+                    totalFmaxPassCount += passCount;        
+                    totalFmaxFailCount += failCount;        
+                    totalFmaxTestCount += failCount + passCount;
                     if (debug_mode == true)
                     {
                         break;
@@ -410,6 +413,9 @@ int main ( void )
             testString = t2;
         }
 
+        isInfTestPoints = 
+                IS_INF_MAX_TEST_PTS*totalInfPassCount/totalInfTestCount;
+        
         snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
                 "========= %s: asmIsInf Function Test %s\r\n"
                 "tests passed: %ld \r\n"
@@ -420,7 +426,7 @@ int main ( void )
                 totalInfPassCount,
                 totalInfFailCount,
                 totalInfTestCount,
-                IS_INF_TEST_PTS*totalInfPassCount/totalInfTestCount, IS_INF_TEST_PTS); 
+                isInfTestPoints, IS_INF_MAX_TEST_PTS); 
 
         isUSARTTxComplete = false;
         printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
@@ -437,6 +443,9 @@ int main ( void )
             testString = t2;
         }
 
+        isZeroTestPoints = 
+                IS_ZERO_MAX_TEST_PTS*totalZeroPassCount/totalZeroTestCount;
+        
         snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
                 "========= %s: asmIsZero Function Test %s\r\n"
                 "tests passed: %ld \r\n"
@@ -447,7 +456,7 @@ int main ( void )
                 totalZeroPassCount,
                 totalZeroFailCount,
                 totalZeroTestCount,
-                IS_ZERO_TEST_PTS*totalZeroPassCount/totalZeroTestCount, IS_ZERO_TEST_PTS); 
+                isZeroTestPoints, IS_ZERO_MAX_TEST_PTS); 
 
         isUSARTTxComplete = false;
         printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
@@ -464,6 +473,9 @@ int main ( void )
             testString = t2;
         }
 
+        fmaxTestPoints = 
+                FMAX_MAX_TEST_PTS*totalFmaxPassCount/totalFmaxTestCount;
+        
         snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
                 "========= %s: asmFmax Function Test %s\r\n"
                 "tests passed: %ld \r\n"
@@ -471,53 +483,51 @@ int main ( void )
                 "total tests:  %ld \r\n"
                 "score: %ld/%ld points \r\n\r\n",
                 (char *) nameStrPtr, testString,
-                totalMaxPassCount,
-                totalMaxFailCount,
-                totalMaxTestCount,
-                FMAX_TEST_PTS*totalMaxPassCount/totalMaxTestCount, FMAX_TEST_PTS); 
+                totalFmaxPassCount,
+                totalFmaxFailCount,
+                totalFmaxTestCount,
+                fmaxTestPoints, FMAX_MAX_TEST_PTS); 
 
         isUSARTTxComplete = false;
         printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
     }
      
-    if (debug_mode == false &&
-            testIsInf == true &&
-            testIsZero == true &&
-            testFmax == true)
+    static char * t1 = "ALL TESTS COMPLETE!";
+    static char * t2 = "DEBUG MODE RESULT, SOME TESTS NOT EXECUTED! IGNORE SCORE.";
+    char * testString = t1;
+    if (debug_mode == true ||
+            testIsInf == false ||
+            testIsZero == false ||
+            testFmax == false)
     {
-        static char * t1 = "ALL TESTS COMPLETE!";
-        static char * t2 = "DEBUG MODE RESULT! IGNORE SCORE.";
-        char * testString = t1;
-        if (debug_mode == true)
-        {
-            testString = t2;
-        }
-
-        int32_t totalTestPoints = IS_ZERO_TEST_PTS + 
-                                  IS_INF_TEST_PTS + 
-                                  FMAX_TEST_PTS;
-        totalPassCount = totalInfPassCount + totalZeroPassCount + totalMaxPassCount;
-        totalFailCount = totalInfFailCount + totalZeroFailCount + totalMaxFailCount;
-        totalTestCount = totalInfTestCount + totalZeroTestCount + totalMaxTestCount;
-        
-        
-        snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
-                "========= %s: asmFmax SUMMARY: %s\r\n"
-                "tests passed: %ld \r\n"
-                "tests failed: %ld \r\n"
-                "total tests:  %ld \r\n"
-                "score: %ld/%ld points \r\n\r\n",
-                (char *) nameStrPtr, testString,
-                totalPassCount,
-                totalFailCount,
-                totalTestCount,
-                totalTestPoints*totalPassCount/totalTestCount, totalTestPoints); 
-
-        isUSARTTxComplete = false;
-        printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
-
-        blinkAndLoopForever(PERIOD_1S);
+        testString = t2;
     }
+
+    int32_t totalTestPoints = isInfTestPoints + 
+                              isZeroTestPoints + 
+                              fmaxTestPoints;
+    totalPassCount = totalInfPassCount + totalZeroPassCount + totalFmaxPassCount;
+    totalFailCount = totalInfFailCount + totalZeroFailCount + totalFmaxFailCount;
+    totalTestCount = totalInfTestCount + totalZeroTestCount + totalFmaxTestCount;
+
+
+    snprintf((char*)uartTxBuffer, MAX_PRINT_LEN,
+            "========= %s: asmFmax all tests SUMMARY: %s\r\n"
+            "tests passed: %ld \r\n"
+            "tests failed: %ld \r\n"
+            "total tests:  %ld \r\n"
+            "score: %ld/%ld points \r\n"
+            "========= SCREEN OUTPUT COMPLETE: LED SHOULD KEEP BLINKING! \r\n\r\n",
+            (char *) nameStrPtr, testString,
+            totalPassCount,
+            totalFailCount,
+            totalTestCount,
+            totalTestPoints, MAX_POSSIBLE_TEST_PTS); 
+
+    isUSARTTxComplete = false;
+    printAndWait((char*)uartTxBuffer,&isUSARTTxComplete);
+
+    blinkAndLoopForever(PERIOD_1S);
 
 #else
             isRTCExpired = true;

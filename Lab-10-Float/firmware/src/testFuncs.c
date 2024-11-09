@@ -368,7 +368,7 @@ void testZeroResult(int testNum,
     
     snprintf((char*)txBuffer, MAX_PRINT_LEN,
         "========= asmIsZero Test Number: %d; %s\r\n"
-        "hex input value:     0x%08lx\r\n"
+        "hex input value:     0x%08lX\r\n"
         "expected asmIsZero result: %3ld\r\n"
         "actual   asmIsZero result: %3ld\r\n"
         "\r\n",
@@ -420,7 +420,7 @@ void testInfResult(int testNum,
     
     snprintf((char*)txBuffer, MAX_PRINT_LEN,
         "========= asmIsInf Test Number: %d; %s\r\n"
-        "hex input value:     0x%08lx\r\n"
+        "hex input value:     0x%08lX\r\n"
         "expected asmIsInf result: %3ld\r\n"
         "actual   asmIsInf result: %3ld\r\n"
         "\r\n",
@@ -513,7 +513,7 @@ void testMaxResult(int testNum,
     checkMax(&e,(int32_t)iMax,passCnt,failCnt,&maxCheck);
     
     // check the unpacked values
-    check(e.signBit,signBitMax,passCnt,failCnt,&sbCheck);
+    check(e.signBit,sbMax,passCnt,failCnt,&sbCheck);
     check(e.biasedExp,storedExpMax,passCnt,failCnt,&biasedExpCheck);
     check(e.unbiasedExp,realExpMax,passCnt,failCnt,&unbiasedExpCheck);
     
@@ -524,13 +524,13 @@ void testMaxResult(int testNum,
     snprintf((char*)txBuffer, MAX_PRINT_LEN,
             "========= asmFmax Test Number: %d\r\n"
             "input1:       %8.4e; input2:     %8.4e \r\n"
-            "hex inp1:     0x%08lx; hex inp2: 0x%08lx\r\n"
+            "hex inp1:     0x%08lX; hex inp2: 0x%08lX\r\n"
             "%s: expected max: %8.4e; asm result: %8.4e\r\n"
             "%s: pointer check: expected:  0x%" PRIXPTR "; actual: 0x%" PRIXPTR "\r\n"
             "%s: sign bit expected: %ld; actual: %ld\r\n"
             "%s: biased expnt expected:   %ld; actual: %ld\r\n"
             "%s: unbiased expnt expected: %ld; actual: %ld\r\n"
-            "%s: mantissa expected: 0x%08lx; actual: 0x%08lx\r\n"
+            "%s: mantissa expected: 0x%08lX; actual: 0x%08lX\r\n"
             "tests passed: %ld; tests failed: %ld \r\n"
             "\r\n",
             testNum,
@@ -539,7 +539,7 @@ void testMaxResult(int testNum,
             reinterpret_float_to_uint(testVal2),
             maxCheck,e.floatVal,asmResult,
             ptrCheck,(uintptr_t)(&fMax), (uintptr_t)pResult,
-            sbCheck,e.signBit,signBitMax,
+            sbCheck,e.signBit,sbMax,
             biasedExpCheck,e.biasedExp,storedExpMax,
             unbiasedExpCheck,e.unbiasedExp,realExpMax,
             mantCheck,e.mantissa,mantMax,
