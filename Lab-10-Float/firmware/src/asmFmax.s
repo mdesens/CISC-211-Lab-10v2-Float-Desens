@@ -26,7 +26,7 @@ nameStrPtr: .word nameStr   /* Assign the mem loc of nameStr to nameStrPtr */
 .type f0,%gnu_unique_object
 .type f1,%gnu_unique_object
 .type fMax,%gnu_unique_object
-.type signBitMax,%gnu_unique_object
+.type sbMax,%gnu_unique_object
 .type storedExpMax,%gnu_unique_object
 .type realExpMax,%gnu_unique_object
 .type mantMax,%gnu_unique_object
