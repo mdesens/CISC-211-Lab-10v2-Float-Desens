@@ -87,8 +87,8 @@ static uint8_t uartTxBuffer[MAX_PRINT_LEN] = {0};
 // in r0 and r1. Otherwise, C forces them to be passed in the fp registers
 // s0 and s1
 extern float * asmFmax(uint32_t, uint32_t);
-extern uint32_t asmIsInf(uint32_t);
-extern uint32_t asmIsZero(uint32_t);
+extern uint32_t asmIsInf(uint32_t *);
+extern uint32_t asmIsZero(uint32_t *);
 
 
 // these are the test cases used to test asmIsZero and asmIsInf
@@ -253,7 +253,7 @@ int main ( void )
                 {
 
                     // Make the call to the assembly function
-                    int32_t result = asmIsInf(tc2[iteration]);
+                    int32_t result = asmIsInf(&tc2[iteration]);
 
                     testInfResult(iteration,tc2[iteration],
                             result,                            
@@ -306,7 +306,7 @@ int main ( void )
                 {
 
                     // Make the call to the assembly function
-                    int32_t result = asmIsZero(tc2[iteration]);
+                    int32_t result = asmIsZero(&tc2[iteration]);
 
                     testZeroResult(iteration,tc2[iteration],
                             result,                            
