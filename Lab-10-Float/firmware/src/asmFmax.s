@@ -321,7 +321,6 @@ asmIsInf:
 
     // compare the input value to the positive infinity value
     ldr r1, =0x7F800000      // 0x7F800000 is the 32-bit representation of positive infinity
-    ldr r1, [r1]
     cmp r0, r1              // compare the input value to the positive infinity value
     beq is_positive_inf     // if the input value is positive infinity, return 1
 

@@ -67,7 +67,7 @@ uint32_t debug_testcase = 2;
 //           set the ones you don't want to run to false. But 
 //           make sure to set them all back to true
 //           at the end, to make sure everything works!
-bool testIsInf  = false;
+bool testIsInf  = true;
 bool testIsZero = true;
 bool testFmax   = true;
 
