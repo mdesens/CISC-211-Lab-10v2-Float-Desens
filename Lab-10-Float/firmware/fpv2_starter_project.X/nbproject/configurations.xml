@@ -1571,6 +1571,8 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-fffff"/>
         <property key="poweroptions.powerenable" value="false"/>
+        <property key="programmerToGoFilePath"
+                  value="C:/Users/markd/OneDrive/Documents/School/CISC211 - Computer architecture and assembly language/repos/CISC-211-Lab-10v2-Float-Desens/Lab-10-Float/firmware/fpv2_starter_project.X/debug/sam_e51_cnano/fpv2_starter_project_ptg"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.preservedataflash" value="false"/>
         <property key="programoptions.preservedataflash.ranges"

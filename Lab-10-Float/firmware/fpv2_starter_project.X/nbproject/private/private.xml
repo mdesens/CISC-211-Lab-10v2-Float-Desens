@@ -3,9 +3,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/main.c</file>
-            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/asmFmax.s</file>
-            <file>file:/Users/vitobica2/Documents/GitHub/CISC-211-Lab-10v2-Float/Lab-10-Float/firmware/src/config/sam_e51_cnano/exceptions.c</file>
+            <file>file:/C:/Users/markd/OneDrive/Documents/School/CISC211%20-%20Computer%20architecture%20and%20assembly%20language/repos/CISC-211-Lab-10v2-Float-Desens/Lab-10-Float/firmware/src/asmFmax.s</file>
+            <file>file:/C:/Users/markd/OneDrive/Documents/School/CISC211%20-%20Computer%20architecture%20and%20assembly%20language/repos/CISC-211-Lab-10v2-Float-Desens/Lab-10-Float/firmware/src/main.c</file>
+            <file>file:/C:/Users/markd/OneDrive/Documents/School/CISC211%20-%20Computer%20architecture%20and%20assembly%20language/repos/CISC-211-Lab-10v2-Float-Desens/Lab-10-Float/firmware/src/config/sam_e51_cnano/peripheral/dmac/plib_dmac.c</file>
         </group>
     </open-files>
 </project-private>

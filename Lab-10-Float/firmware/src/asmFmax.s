@@ -147,13 +147,21 @@ getSignBit:
     // save the caller registers, as required by the ARM calling convention
     push {r4-r11,LR}
     
-    // mask the input value to extract the sign bit
-    ldr r1, =0x80000000     // 0x80000000 is the 32-bit representation of the sign bit
-    ldr r2, [r0]            // load the input value into r2
-    and r2, r2, r1          // mask the input value to extract the sign bit
-    lsr r2, r2, 31          // shift the sign bit into the lower bit of r2
-    str r2, [r1]            // store the sign bit in the memory location given by r1
-    
+    // load the input value into r4
+    ldr r4, [r0]
+
+    // default the sign bit to 0 (positive)
+    mov r1, 0
+
+    // Check the value in r4 to determine if f* is positive or negative
+    cmn r4, 0                   // 1 if the sign bit is negative, 0 if the sign bit is positive
+    beq continue_processing     // if the value in r1 is 0, the sign bit is positive, so no special handling is needed
+
+    handle_negative_value:
+    // Handle the case where the value is 0xFFFFFFFF (signed -1)
+    mov r1, -1                  // Move -1 into r1, since r1 contains the ouptut value for the function
+
+    continue_processing:
     /* Restore the caller's registers, as required by the ARM calling convention */
     pop {r4-r11,LR}
 
@@ -185,9 +193,13 @@ getExponent:
     push {r4-r11,LR}
     
     // mask the input value to extract the stored exponent
-    ldr r1, =0x7F800000     // 0x7F800000 is the 32-bit representation of the stored exponent mask
-    and r0, r0, r1          // mask the input value to extract the stored exponent
-    lsr r0, r0, #23         // shift the stored exponent bits into the lower 8 bits of r0
+    ldr r4, =0x7F800000     // 0x7F800000 is the 32-bit representation of the stored exponent mask
+    and r0, r0, r4          // mask the input value to extract the stored exponent
+    lsr r0, r0, 23         // shift the stored exponent bits into the lower 8 bits of r0
+
+    // calculate the real exponent
+    mov r1, 127             // 127 is the bias for the stored exponent
+    sub r1, r1, r0          // calculate the real exponent by subtracting the bias from the stored exponent
     
     /* Restore the caller's registers, as required by the ARM calling convention */
     pop {r4-r11,LR}
@@ -217,13 +229,13 @@ getMantissa:
     push {r4-r11,LR}
     
     // mask the input value to extract the mantissa
+    ldr r0, [r0]            // load the input value into r0
     ldr r1, =0x007FFFFF     // 0x007FFFFF is the 32-bit representation of the mantissa mask
-    and r0, r0, r1          // mask the input value to extract the mantissa
+    and r0, r0, r1          // mask the input value to extract the mantissa without the implied 1 bit
 
     // set the implied 1 bit in the mantissa
     ldr r1, =0x00800000     // 0x00800000 is the 32-bit representation of the implied 1 bit
     orr r1, r1, r0          // set the implied 1 bit in the mantissa
-    mov r0, r1              // store the mantissa with the implied 1 bit in r0
 
     /* Restore the caller's registers, as required by the ARM calling convention */
     pop {r4-r11,LR}
@@ -322,17 +334,17 @@ asmIsInf:
     mov r0, 0
     b restore_registers_inf
 
-is_positive_inf:
     // if the input value is positive infinity, return 1
+    is_positive_inf:
     mov r0, 1
     b restore_registers_inf
 
-is_negative_inf:
     // if the input value is negative infinity, return -1
+    is_negative_inf:
     mov r0, -1
 
-restore_registers_inf:
     /* Restore the caller's registers, as required by the ARM calling convention */
+    restore_registers_inf:
     pop {r4-r11,LR}
 
     /* asmIsInf return to caller */    
@@ -380,50 +392,180 @@ asmFmax:
     // save the caller registers, as required by the ARM calling convention
     push {r4-r11,LR}
 
+    // call the initVariables function to initialize all variables to 0
+    bl initVariables        
+
+set_f0_and_f1:
     // unpack the f0 value
-    ldr r0, [r0]            // load the f0 value into r0
-    bl getSignBit           // get the sign bit of f0
-    ldr r1, =sbMax          // load the address of sbMax into r1
-    str r0, [r1]            // store the sign bit of f0 in sbMax
-    bl getExponent          // get the stored exponent of f0
-    ldr r1, =storedExpMax   // load the address of storedExpMax into r1
-    str r0, [r1]            // store the stored exponent of f0 in storedExpMax
-    sub r0, r0, #127        // adjust the stored exponent of f0 to get the real exponent
-    ldr r1, =realExpMax     // load the address of realExpMax into r1
-    str r0, [r1]            // store the real exponent of f0 in realExpMax
-    bl getMantissa          // get the mantissa of f0
-    ldr r1, =mantMax        // load the address of mantMax into r1
-    str r0, [r1]            // store the mantissa of f0 in mantMax
+    ldr r4, =f0             // load the address of f0 into r4
+    ldr r5, [r0]            // load the f0 value into r5
+    str r5, [r4]            // store the f0 (param) value in f0 (global)
 
     // unpack the f1 value
-    ldr r0, [r1]            // load the f1 value into r0
-    bl getSignBit           // get the sign bit of f1
-    ldr r1, =sbMax          // load the address of sbMax into r1
-    str r0, [r1]            // store the sign bit of f1 in sbMax
-    bl getExponent          // get the stored exponent of f1
-    ldr r1, =storedExpMax   // load the address of storedExpMax into r1
-    str r0, [r1]            // store the stored exponent of f1 in storedExpMax
-    sub r0, r0, #127        // adjust the stored exponent of f1 to get the real exponent
-    ldr r1, =realExpMax     // load the address of realExpMax into r1
-    str r0, [r1]            // store the real exponent of f1 in realExpMax
-    bl getMantissa          // get the mantissa of f1
-    ldr r1, =mantMax        // load the address of mantMax into r1
-    str r0, [r1]            // store the mantissa of f1 in mantMax
+    ldr r4, =f1             // load the address of f1 into r4
+    ldr r5, [r1]            // load the f1 value into r5
+    str r5, [r4]            // store the f1 (param) value in f1 (global)
 
-    // compare the f0 and f1 values
+// check if the f0 value equals +/- infinity using asmIsInf
+is_f0_inf:
+    // since r0 already contains the address of f0, asmIsInf can use it to access the value of f0
+    bl asmIsInf             // call the asmIsInf function
+    cmp r0, 0               // compare the result of asmIsInf to 0
+    bgt f0_is_greater       // if the value is positive infinity, the other number must be equal or smaller
+    blt f1_is_greater       // if the value is negative infinity, the other number must be equal or larger
+
+// check if the f1 value equals +/- infinity using asmIsInf
+is_f1_inf:
+    ldr r0, =f1             // load the address of f1 into r0, since asmIsInf uses r0 to access the value of f1
+    bl asmIsInf             // call the asmIsInf function
+    cmp r0, 0               // compare the result of asmIsInf to 0
+    bgt f1_is_greater       // if the value is positive infinity, the other number must be equal or smaller
+    blt f0_is_greater       // if the value is negative infinity, the other number must be equal or larger
+
+// unpack the sign bit of f0 using getSignBit
+get_sign_bit_f0:
     ldr r0, =f0             // load the address of f0 into r0
-    ldr r0, [r0]            // load the f0 value into r0
-    ldr r1, =f1             // load the address of f1 into r1
-    ldr r1, [r1]            // load the f1 value into r1
-    cmp r0, r1              // compare the f0 and f1 values
-    bge f0_is_greater       // if f0 is greater than or equal to f1, return f0
+    bl getSignBit           // call the getSignBit function
+    ldr r4, =sb0            // load the address of sb0 into r5
+    ldr r5, [r0]            // load the sign bit of f0 (returned from getSignBit in r1) into r5
+    str r5, [r4]            // store the sign bit of f0 in sb0
+
+// unpack the sign bit of f1 using getSignBit
+get_sign_bit_f1:
     ldr r0, =f1             // load the address of f1 into r0
-    ldr r0, [r0]            // load the f1 value into r0
-    
+    bl getSignBit           // call the getSignBit function
+    ldr r4, =sb1            // load the address of sb1 into r5
+    ldr r5, [r0]            // load the sign bit of f1 (returned from getSignBit in r1) into r5
+    str r5, [r4]            // store the sign bit of f1 in sb1
+
+// compare the sign bits of f0 and f1 to determine the sign bit of fMax and potentially which is the largest float if signs differ
+set_sign_bit_max:
+    // get the sign bit of f0
+    ldr r4, =sb0            // load the address of sb0 into r4
+    ldr r4, [r4]            // load the sign bit of f0 into r4
+    ldr r5, =sb1            // load the address of sb1 into r5
+    ldr r5, [r5]            // load the sign bit of f1 into r5
+    cmp r4, r5              // compare the sign bits of f0 and f1
+    bgt f0_is_greater      // if the sign bit of f0 is positive, the sign bit of fMax is positive and f0 is greater
+    blt f1_is_greater      // if the sign bit of f1 is positive, the sign bit of fMax is positive and f1 is greater
+
+// unpack the stored exponent of f0 using getExponent
+get_stored_exp_f0:
+    ldr r0, =f0             // load the address of f0 into r0, since getExponent uses r0 to access the value of f0
+    bl getExponent          // call the getExponent function
+    ldr r4, =storedExp0     // load the address of storedExp0 into r4
+    str r0, [r4]            // store the stored exponent of f0 in storedExp0
+    ldr r4, =realExp0       // load the address of realExp0 into r4
+    str r1, [r4]            // store the real exponent of f0 in realExp0
+
+// unpack the stored exponent of f1 using getExponent
+get_stored_exp_f1:
+    ldr r0, =f1             // load the address of f1 into r0, since getExponent uses r0 to access the value of f1
+    bl getExponent          // call the getExponent function
+    ldr r5, =storedExp1     // load the address of storedExp1 into r5
+    str r0, [r5]            // store the stored exponent of f1 in storedExp1
+    ldr r5, =realExp1       // load the address of realExp1 into r5
+    str r1, [r5]            // store the real exponent of f1 in realExp1
+
+// compare the real exponents of f0 and f1 to determine the real exponent of fMax and potentially which is the largest float
+set_real_exp_max:
+    // get the real exponent of f0 (performing again in case code changes)
+    ldr r4, =realExp0       // load the address of realExp0 into r4
+    ldr r4, [r4]            // load the real exponent of f0 into r4
+    // get the real exponent of f1
+    ldr r5, =realExp1       // load the address of realExp1 into r5
+    ldr r5, [r5]            // load the real exponent of f1 into r5
+    // compare the real exponents of f0 and f1
+    cmp r4, r5              
+    bgt f0_is_greater       // if the real exponent of f0 is greater, the real exponent of fMax is the real exponent of f0 and f0 is greater
+    blt f1_is_greater       // if the real exponent of f1 is greater, the real exponent of fMax is the real exponent of f1 and f1 is greater
+
+// unpack the mantissa of f0 using getMantissa
+get_mantissa_f0:
+    ldr r0, =f0             // load the address of f0 into r0, since getMantissa uses r0 to access the value of f0
+    bl getMantissa          // call the getMantissa function
+    ldr r4, =mant0          // load the address of mant0 into r4
+    str r1, [r4]            // store the mantissa with implied bit of f0 in mant0
+
+// unpack the mantissa of f1 using getMantissa
+get_mantissa_f1:
+    ldr r0, =f1             // load the address of f1 into r0, since getMantissa uses r0 to access the value of f1
+    bl getMantissa          // call the getMantissa function
+    ldr r4, =mant1          // load the address of mant1 into r4
+    str r1, [r4]            // store the mantissa with implied bit of f1 in mant1
+
+// compare the mantissas of f0 and f1 to determine the mantissa of fMax and potentially which is the largest float
+set_mant_max:
+    // get the mantissa of f0 (performing again in case code changes)
+    ldr r4, =mant0          // load the address of mant0 into r4
+    ldr r4, [r4]            // load the mantissa with implied bit of f0 into r4
+    // get the mantissa of f1
+    ldr r5, =mant1          // load the address of mant1 into r5
+    ldr r5, [r5]            // load the mantissa with implied bit of f1 into r5
+    // compare the mantissas of f0 and f1
+    cmp r4, r5
+    bgt f0_is_greater       // if the mantissa of f0 is greater, the mantissa of fMax is the mantissa of f0 and f0 is greater
+    blt f1_is_greater       // if the mantissa of f1 is greater, the mantissa of fMax is the mantissa of f1 and f1 is greater
+
 f0_is_greater:
     // store the greater value in fMax
-    ldr r1, =fMax           // load the address of fMax into r1
-    str r0, [r1]            // store the greater value in fMax
+    ldr r4, =fMax           // load the address of fMax into r1
+    ldr r5, =f0             // load the address of f0 into r5
+    ldr r5, [r5]            // load the f0 value into r0
+    str r5, [r4]            // store the greater value in fMax
+    ldr r0, =fMax           // load the address of fMax into r0
+    // store the sign bit of the greater value in signBitMax
+    ldr r4, =sb0            // load the address of sb0 into r4
+    ldr r4, [r4]            // load the sign bit of f0 into r4
+    ldr r5, =sbMax          // load the address of sbMax into r5
+    str r4, [r5]            // store the sign bit of the greater value in sbMax
+    // store the stored exponent of the greater value in storedExpMax
+    ldr r4, =storedExp0     // load the address of storedExp0 into r4
+    ldr r4, [r4]            // load the stored exponent of f0 into r4
+    ldr r5, =storedExpMax   // load the address of storedExpMax into r5
+    str r4, [r5]            // store the stored exponent of the greater value in storedExpMax
+    // store the real exponent of the greater value in realExpMax
+    ldr r4, =realExp0       // load the address of realExp0 into r4
+    ldr r4, [r4]            // load the real exponent of f0 into r4
+    ldr r5, =realExpMax     // load the address of realExpMax into r5
+    str r4, [r5]            // store the real exponent of the greater value in realExpMax
+    // store the mantissa of the greater value in mantMax
+    ldr r4, =mant0          // load the address of mant0 into r4
+    ldr r4, [r4]            // load the mantissa with implied bit of f0 into r4
+    ldr r5, =mantMax        // load the address of mantMax into r5
+    str r4, [r5]            // store the mantissa of the greater value in mantMax
+    // restore the caller registers and return to the caller
+    b restore_registers     
+
+f1_is_greater:
+    // store the greater value in fMax
+    ldr r4, =fMax           // load the address of fMax into r1
+    ldr r5, =f1             // load the address of f1 into r5
+    ldr r5, [r5]            // load the f1 value into r0
+    str r5, [r4]            // store the greater value in fMax
+    ldr r0, =fMax           // load the address of fMax into r0
+    // store the sign bit of the greater value in signBitMax
+    ldr r4, =sb1            // load the address of sb1 into r4
+    ldr r4, [r4]            // load the sign bit of f1 into r4
+    ldr r5, =sbMax          // load the address of sbMax into r5
+    str r4, [r5]            // store the sign bit of the greater value in sbMax
+    // store the stored exponent of the greater value in storedExpMax
+    ldr r4, =storedExp1     // load the address of storedExp1 into r4
+    ldr r4, [r4]            // load the stored exponent of f1 into r4
+    ldr r5, =storedExpMax   // load the address of storedExpMax into r5
+    str r4, [r5]            // store the stored exponent of the greater value in storedExpMax
+    // store the real exponent of the greater value in realExpMax
+    ldr r4, =realExp1       // load the address of realExp1 into r4
+    ldr r4, [r4]            // load the real exponent of f1 into r4
+    ldr r5, =realExpMax     // load the address of realExpMax into r5
+    str r4, [r5]            // store the real exponent of the greater value in realExpMax
+    // store the mantissa of the greater value in mantMax
+    ldr r4, =mant1          // load the address of mant1 into r4
+    ldr r4, [r4]            // load the mantissa with implied bit of f1 into r4
+    ldr r5, =mantMax        // load the address of mantMax into r5 
+    str r4, [r5]            // store the mantissa of the greater value in mantMax
+    // restore the caller registers and return to the caller
+    b restore_registers     // not needed, but included for consistency and in case of future changes
 
 restore_registers:
     /* Restore the caller's registers, as required by the ARM calling convention */
@@ -433,7 +575,6 @@ restore_registers:
     mov pc, lr      
     
     /* YOUR asmFmax CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
-
    
 
 /**********************************************************************/   
