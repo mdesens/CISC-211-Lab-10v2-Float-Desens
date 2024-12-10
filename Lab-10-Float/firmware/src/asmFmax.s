@@ -13,7 +13,7 @@
 .type nameStr,%gnu_unique_object
     
 /*** STUDENTS: Change the next line to your name!  **/
-nameStr: .asciz "Inigo Montoya"  
+nameStr: .asciz "Mark Desens"  
  
 .align
 
@@ -81,6 +81,52 @@ nanValue: .word 0x7FFFFFFF
 initVariables:
     /* YOUR initVariables CODE BELOW THIS LINE! Don't forget to push and pop! */
 
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
+    
+    // initialize all f0 variables to 0
+    ldr r0, =f0
+    mov r1, 0
+    str r1, [r0]
+    ldr r0, =sb0
+    str r1, [r0]
+    ldr r0, =storedExp0
+    str r1, [r0]
+    ldr r0, =realExp0
+    str r1, [r0]
+    ldr r0, =mant0
+    str r1, [r0]
+
+    // initialize all f1 variables to 0
+    ldr r0, =f1
+    str r1, [r0]
+    ldr r0, =sb1
+    str r1, [r0]
+    ldr r0, =storedExp1
+    str r1, [r0]
+    ldr r0, =realExp1
+    str r1, [r0]
+    ldr r0, =mant1
+    str r1, [r0]
+
+    // initialize all fMax variables to 0
+    ldr r0, =fMax
+    str r1, [r0]
+    ldr r0, =sbMax
+    str r1, [r0]
+    ldr r0, =storedExpMax
+    str r1, [r0]
+    ldr r0, =realExpMax
+    str r1, [r0]
+    ldr r0, =mantMax
+    str r1, [r0]
+    
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* asmIsInf return to caller */    
+    mov pc, lr  
+
     /* YOUR initVariables CODE ABOVE THIS LINE! Don't forget to push and pop! */
 
     
@@ -97,6 +143,22 @@ initVariables:
 .type getSignBit,%function
 getSignBit:
     /* YOUR getSignBit CODE BELOW THIS LINE! Don't forget to push and pop! */
+
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
+    
+    // mask the input value to extract the sign bit
+    ldr r1, =0x80000000     // 0x80000000 is the 32-bit representation of the sign bit
+    ldr r2, [r0]            // load the input value into r2
+    and r2, r2, r1          // mask the input value to extract the sign bit
+    lsr r2, r2, 31          // shift the sign bit into the lower bit of r2
+    str r2, [r1]            // store the sign bit in the memory location given by r1
+    
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* asmIsInf return to caller */    
+    mov pc, lr  
 
     /* YOUR getSignBit CODE ABOVE THIS LINE! Don't forget to push and pop! */
     
@@ -118,7 +180,21 @@ getSignBit:
 .type getExponent,%function
 getExponent:
     /* YOUR getExponent CODE BELOW THIS LINE! Don't forget to push and pop! */
+
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
     
+    // mask the input value to extract the stored exponent
+    ldr r1, =0x7F800000     // 0x7F800000 is the 32-bit representation of the stored exponent mask
+    and r0, r0, r1          // mask the input value to extract the stored exponent
+    lsr r0, r0, #23         // shift the stored exponent bits into the lower 8 bits of r0
+    
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* asmIsInf return to caller */    
+    mov pc, lr  
+
     /* YOUR getExponent CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
 
@@ -136,6 +212,24 @@ getExponent:
 .type getMantissa,%function
 getMantissa:
     /* YOUR getMantissa CODE BELOW THIS LINE! Don't forget to push and pop! */
+
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
+    
+    // mask the input value to extract the mantissa
+    ldr r1, =0x007FFFFF     // 0x007FFFFF is the 32-bit representation of the mantissa mask
+    and r0, r0, r1          // mask the input value to extract the mantissa
+
+    // set the implied 1 bit in the mantissa
+    ldr r1, =0x00800000     // 0x00800000 is the 32-bit representation of the implied 1 bit
+    orr r1, r1, r0          // set the implied 1 bit in the mantissa
+    mov r0, r1              // store the mantissa with the implied 1 bit in r0
+
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* asmIsInf return to caller */    
+    mov pc, lr  
     
     /* YOUR getMantissa CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
@@ -156,7 +250,40 @@ getMantissa:
 .type asmIsZero,%function
 asmIsZero:
     /* YOUR asmIsZero CODE BELOW THIS LINE! Don't forget to push and pop! */
-BX LR    
+
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
+
+    // compare the input value to the positive zero value
+    ldr r1, =0x00000000      // 0x00000000 is the 32-bit representation of positive zero
+    cmp r0, r1              // compare the input value to the positive zero value
+    beq is_positive_zero    // if the input value is positive zero, return 1
+
+    // compare the input value to the negative zero value
+    ldr r1, =0x80000000      // 0x80000000 is the 32-bit representation of negative zero
+    cmp r0, r1              // compare the input value to the negative zero value
+    beq is_negative_zero    // if the input value is negative zero, return -1
+
+    // if the input value is not zero, return 0
+    mov r0, 0
+    b restore_registers     // restore the caller registers and return to the caller
+
+is_positive_zero:
+    // if the input value is positive zero, return 1
+    mov r0, 1
+    b restore_registers     // restore the caller registers and return to the caller
+
+is_negative_zero:
+    // if the input value is negative zero, return -1
+    mov r0, -1
+
+restore_registers_is_zero:
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* asmIsInf return to caller */    
+    mov pc, lr  
+    
     /* YOUR asmIsZero CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
 
@@ -176,7 +303,41 @@ BX LR
 .type asmIsInf,%function
 asmIsInf:
     /* YOUR asmIsInf CODE BELOW THIS LINE! Don't forget to push and pop! */
-BX LR    
+
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
+
+    // compare the input value to the positive infinity value
+    ldr r1, =0x7F800000      // 0x7F800000 is the 32-bit representation of positive infinity
+    ldr r1, [r1]
+    cmp r0, r1              // compare the input value to the positive infinity value
+    beq is_positive_inf     // if the input value is positive infinity, return 1
+
+    // compare the input value to the negative infinity value
+    ldr r1, =0xFF800000      // 0xFF800000 is the 32-bit representation of negative infinity
+    cmp r0, r1
+    beq is_negative_inf
+
+    // if the input value is not infinity, return 0
+    mov r0, 0
+    b restore_registers_inf
+
+is_positive_inf:
+    // if the input value is positive infinity, return 1
+    mov r0, 1
+    b restore_registers_inf
+
+is_negative_inf:
+    // if the input value is negative infinity, return -1
+    mov r0, -1
+
+restore_registers_inf:
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* asmIsInf return to caller */    
+    mov pc, lr  
+
     /* YOUR asmIsInf CODE ABOVE THIS LINE! Don't forget to push and pop! */
    
 
@@ -215,8 +376,62 @@ where:
 asmFmax:   
 
     /* YOUR asmFmax CODE BELOW THIS LINE! VVVVVVVVVVVVVVVVVVVVV  */
+
+    // save the caller registers, as required by the ARM calling convention
+    push {r4-r11,LR}
+
+    // unpack the f0 value
+    ldr r0, [r0]            // load the f0 value into r0
+    bl getSignBit           // get the sign bit of f0
+    ldr r1, =sbMax          // load the address of sbMax into r1
+    str r0, [r1]            // store the sign bit of f0 in sbMax
+    bl getExponent          // get the stored exponent of f0
+    ldr r1, =storedExpMax   // load the address of storedExpMax into r1
+    str r0, [r1]            // store the stored exponent of f0 in storedExpMax
+    sub r0, r0, #127        // adjust the stored exponent of f0 to get the real exponent
+    ldr r1, =realExpMax     // load the address of realExpMax into r1
+    str r0, [r1]            // store the real exponent of f0 in realExpMax
+    bl getMantissa          // get the mantissa of f0
+    ldr r1, =mantMax        // load the address of mantMax into r1
+    str r0, [r1]            // store the mantissa of f0 in mantMax
+
+    // unpack the f1 value
+    ldr r0, [r1]            // load the f1 value into r0
+    bl getSignBit           // get the sign bit of f1
+    ldr r1, =sbMax          // load the address of sbMax into r1
+    str r0, [r1]            // store the sign bit of f1 in sbMax
+    bl getExponent          // get the stored exponent of f1
+    ldr r1, =storedExpMax   // load the address of storedExpMax into r1
+    str r0, [r1]            // store the stored exponent of f1 in storedExpMax
+    sub r0, r0, #127        // adjust the stored exponent of f1 to get the real exponent
+    ldr r1, =realExpMax     // load the address of realExpMax into r1
+    str r0, [r1]            // store the real exponent of f1 in realExpMax
+    bl getMantissa          // get the mantissa of f1
+    ldr r1, =mantMax        // load the address of mantMax into r1
+    str r0, [r1]            // store the mantissa of f1 in mantMax
+
+    // compare the f0 and f1 values
+    ldr r0, =f0             // load the address of f0 into r0
+    ldr r0, [r0]            // load the f0 value into r0
+    ldr r1, =f1             // load the address of f1 into r1
+    ldr r1, [r1]            // load the f1 value into r1
+    cmp r0, r1              // compare the f0 and f1 values
+    bge f0_is_greater       // if f0 is greater than or equal to f1, return f0
+    ldr r0, =f1             // load the address of f1 into r0
+    ldr r0, [r0]            // load the f1 value into r0
     
-BX LR    
+f0_is_greater:
+    // store the greater value in fMax
+    ldr r1, =fMax           // load the address of fMax into r1
+    str r0, [r1]            // store the greater value in fMax
+
+restore_registers:
+    /* Restore the caller's registers, as required by the ARM calling convention */
+    pop {r4-r11,LR}
+
+    /* asmIsInf return to caller */    
+    mov pc, lr      
+    
     /* YOUR asmFmax CODE ABOVE THIS LINE! ^^^^^^^^^^^^^^^^^^^^^  */
 
    
