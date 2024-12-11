@@ -187,6 +187,7 @@ getExponent:
     
     // mask the input value to extract the stored exponent
     ldr r4, =0x7F800000     // 0x7F800000 is the 32-bit representation of the stored exponent mask
+    ldr r0, [r0]            // load the input value into r0
     and r0, r0, r4          // mask the input value to extract the stored exponent
     lsr r0, r0, 23         // shift the stored exponent bits into the lower 8 bits of r0
 
@@ -436,6 +437,8 @@ set_sign_bit_max:
     cmp r4, r5              // compare the sign bits of f0 and f1
     bgt f1_is_greater      // if the sign bit of f0 is greater, than it is 1 (negative), so the sign bit of fMax is 1 (negative) and f1 is greater
     blt f0_is_greater      // if the sign bit of f1 is greater, than it is 1 (negative), so the sign bit of fMax is 1 (negative) and f0 is greater
+    ldr r4, =sbMax          // load the address of sbMax into r4
+    str r5, [r4]            // store the either sign bit (sb0 or sb1) since they are the same, in sbMax
 
 // unpack the stored exponent of f0 using getExponent
 get_stored_exp_f0:
