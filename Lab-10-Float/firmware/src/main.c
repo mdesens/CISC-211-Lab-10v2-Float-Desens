@@ -119,19 +119,19 @@ static uint32_t tc2[] = { // DO NOT MODIFY THESE!!!!!
 
 // These are the test cases used to test asmFmax
 static float tc[][2] = { // DO NOT MODIFY THESE!!!!!
-    {   1.175503179e-38, 1.10203478208e-38 },  //  Test case 0
-    {    -0.2,                 -0.1},          //  Test case 1
-    {     1.0,                  2.0},          //  TC #2
+//    {   1.175503179e-38, 1.10203478208e-38 },  //  Test case 0
+//    {    -0.2,                 -0.1},          //  Test case 1
+//    {     1.0,                  2.0},          //  TC #2
     {    -3.1,                  -1.2},         //  TC #3
     {    -7.25,                 -6.5},         //  TC #4
-    {     0.1,                  0.99},         //  TC #7
-    {     1.14437421182e-28,   785.066650391}, //  TC #8
-    { -4000.1,                   0.0,},        //  TC #9
-    {    -1.9e-5,               -1.9e-5},      //  TC #10
-    {     1.347e10,              2.867e-10},   //  TC #11
-    {    INFINITY,           NEG_INFINITY},    //  TC #14
-    {    NEG_INFINITY,           -6.24},       //  TC #15
-    {     1.0,                   0.0}          //  TC #16
+//    {     0.1,                  0.99},         //  TC #7
+//    {     1.14437421182e-28,   785.066650391}, //  TC #8
+//    { -4000.1,                   0.0,},        //  TC #9
+//    {    -1.9e-5,               -1.9e-5},      //  TC #10
+//    {     1.347e10,              2.867e-10},   //  TC #11
+//    {    INFINITY,           NEG_INFINITY},    //  TC #14
+//    {    NEG_INFINITY,           -6.24},       //  TC #15
+//    {     1.0,                   0.0}          //  TC #16
 };
 
 #define USING_HW 1

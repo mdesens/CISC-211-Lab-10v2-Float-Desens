@@ -85,41 +85,41 @@ initVariables:
     push {r4-r11,LR}
     
     // initialize all f0 variables to 0
-    ldr r0, =f0
-    mov r1, 0
-    str r1, [r0]
-    ldr r0, =sb0
-    str r1, [r0]
-    ldr r0, =storedExp0
-    str r1, [r0]
-    ldr r0, =realExp0
-    str r1, [r0]
-    ldr r0, =mant0
-    str r1, [r0]
+    ldr r4, =f0
+    mov r5, 0
+    str r5, [r4]
+    ldr r4, =sb0
+    str r5, [r4]
+    ldr r4, =storedExp0
+    str r5, [r4]
+    ldr r4, =realExp0
+    str r5, [r4]
+    ldr r4, =mant0
+    str r5, [r4]
 
     // initialize all f1 variables to 0
-    ldr r0, =f1
-    str r1, [r0]
-    ldr r0, =sb1
-    str r1, [r0]
-    ldr r0, =storedExp1
-    str r1, [r0]
-    ldr r0, =realExp1
-    str r1, [r0]
-    ldr r0, =mant1
-    str r1, [r0]
+    ldr r4, =f1
+    str r5, [r4]
+    ldr r4, =sb1
+    str r5, [r4]
+    ldr r4, =storedExp1
+    str r5, [r4]
+    ldr r4, =realExp1
+    str r5, [r4]
+    ldr r4, =mant1
+    str r5, [r4]
 
     // initialize all fMax variables to 0
-    ldr r0, =fMax
-    str r1, [r0]
-    ldr r0, =sbMax
-    str r1, [r0]
-    ldr r0, =storedExpMax
-    str r1, [r0]
-    ldr r0, =realExpMax
-    str r1, [r0]
-    ldr r0, =mantMax
-    str r1, [r0]
+    ldr r4, =fMax
+    str r5, [r4]
+    ldr r4, =sbMax
+    str r5, [r4]
+    ldr r4, =storedExpMax
+    str r5, [r4]
+    ldr r4, =realExpMax
+    str r5, [r4]
+    ldr r4, =mantMax
+    str r5, [r4]
     
     /* Restore the caller's registers, as required by the ARM calling convention */
     pop {r4-r11,LR}
@@ -146,22 +146,15 @@ getSignBit:
 
     // save the caller registers, as required by the ARM calling convention
     push {r4-r11,LR}
-    
-    // load the input value into r4
-    ldr r4, [r0]
 
-    // default the sign bit to 0 (positive)
-    mov r1, 0
+    // Extract the sign bit from the floating-point value in r0
+    ldr r4, [r0]                // Load the value from the address in r0 into r4
+    lsr r4, r4, 31              // Shift right by 31 bits to get the sign bit in the least significant bit position
+    and r4, r4, 1               // Mask all but the least significant bit
 
-    // Check the value in r4 to determine if f* is positive or negative
-    cmn r4, 0                   // 1 if the sign bit is negative, 0 if the sign bit is positive
-    beq continue_processing     // if the value in r1 is 0, the sign bit is positive, so no special handling is needed
+    // Store the sign bit in the memory location given by r1
+    str r4, [r1]                // Store the sign bit (0 or 1) in the memory location pointed to by r1
 
-    handle_negative_value:
-    // Handle the case where the value is 0xFFFFFFFF (signed -1)
-    mov r1, -1                  // Move -1 into r1, since r1 contains the ouptut value for the function
-
-    continue_processing:
     /* Restore the caller's registers, as required by the ARM calling convention */
     pop {r4-r11,LR}
 
@@ -281,16 +274,16 @@ asmIsZero:
     mov r0, 0
     b restore_registers     // restore the caller registers and return to the caller
 
-is_positive_zero:
+    is_positive_zero:
     // if the input value is positive zero, return 1
     mov r0, 1
     b restore_registers     // restore the caller registers and return to the caller
 
-is_negative_zero:
+    is_negative_zero:
     // if the input value is negative zero, return -1
     mov r0, -1
 
-restore_registers_is_zero:
+    restore_registers_is_zero:
     /* Restore the caller's registers, as required by the ARM calling convention */
     pop {r4-r11,LR}
 
@@ -424,18 +417,14 @@ is_f1_inf:
 // unpack the sign bit of f0 using getSignBit
 get_sign_bit_f0:
     ldr r0, =f0             // load the address of f0 into r0
+    ldr r1, =sb0            // load the address of sb0 into r1
     bl getSignBit           // call the getSignBit function
-    ldr r4, =sb0            // load the address of sb0 into r5
-    ldr r5, [r0]            // load the sign bit of f0 (returned from getSignBit in r1) into r5
-    str r5, [r4]            // store the sign bit of f0 in sb0
 
 // unpack the sign bit of f1 using getSignBit
 get_sign_bit_f1:
     ldr r0, =f1             // load the address of f1 into r0
+    ldr r1, =sb1            // load the address of sb1 into r1
     bl getSignBit           // call the getSignBit function
-    ldr r4, =sb1            // load the address of sb1 into r5
-    ldr r5, [r0]            // load the sign bit of f1 (returned from getSignBit in r1) into r5
-    str r5, [r4]            // store the sign bit of f1 in sb1
 
 // compare the sign bits of f0 and f1 to determine the sign bit of fMax and potentially which is the largest float if signs differ
 set_sign_bit_max:
@@ -445,8 +434,8 @@ set_sign_bit_max:
     ldr r5, =sb1            // load the address of sb1 into r5
     ldr r5, [r5]            // load the sign bit of f1 into r5
     cmp r4, r5              // compare the sign bits of f0 and f1
-    bgt f0_is_greater      // if the sign bit of f0 is positive, the sign bit of fMax is positive and f0 is greater
-    blt f1_is_greater      // if the sign bit of f1 is positive, the sign bit of fMax is positive and f1 is greater
+    bgt f1_is_greater      // if the sign bit of f0 is greater, than it is 1 (negative), so the sign bit of fMax is 1 (negative) and f1 is greater
+    blt f0_is_greater      // if the sign bit of f1 is greater, than it is 1 (negative), so the sign bit of fMax is 1 (negative) and f0 is greater
 
 // unpack the stored exponent of f0 using getExponent
 get_stored_exp_f0:
