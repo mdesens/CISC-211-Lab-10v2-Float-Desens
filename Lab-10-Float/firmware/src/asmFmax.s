@@ -193,7 +193,7 @@ getExponent:
 
     // calculate the real exponent
     mov r1, 127             // 127 is the bias for the stored exponent
-    sub r1, r1, r0          // calculate the real exponent by subtracting the bias from the stored exponent
+    sub r1, r0, r1          // calculate the real exponent by subtracting the bias from the stored exponent
     
     /* Restore the caller's registers, as required by the ARM calling convention */
     pop {r4-r11,LR}
@@ -439,15 +439,6 @@ get_stored_exp_f1:
     ldr r5, =realExp1       // load the address of realExp1 into r5
     str r1, [r5]            // store the real exponent of f1 in realExp1
 
-// compare the real exponents of f0 and f1 to determine the real exponent of fMax and potentially which is the largest float
-set_real_exp_max:
-    // get the real exponent of f0 (performing again in case code changes)
-    ldr r4, =realExp0       // load the address of realExp0 into r4
-    ldr r4, [r4]            // load the real exponent of f0 into r4
-    // get the real exponent of f1
-    ldr r5, =realExp1       // load the address of realExp1 into r5
-    ldr r5, [r5]            // load the real exponent of f1 into r5
-
 // unpack the mantissa of f0 using getMantissa
 get_mantissa_f0:
     ldr r0, =f0             // load the address of f0 into r0, since getMantissa uses r0 to access the value of f0
@@ -462,21 +453,16 @@ get_mantissa_f1:
     ldr r4, =mant1          // load the address of mant1 into r4
     str r1, [r4]            // store the mantissa with implied bit of f1 in mant1
 
-// compare the mantissas of f0 and f1 to determine the mantissa of fMax and potentially which is the largest float
-set_mant_max:
-    // get the mantissa of f0 (performing again in case code changes)
-    ldr r4, =mant0          // load the address of mant0 into r4
-    ldr r4, [r4]            // load the mantissa with implied bit of f0 into r4
-    // get the mantissa of f1
-    ldr r5, =mant1          // load the address of mant1 into r5
-    ldr r5, [r5]            // load the mantissa with implied bit of f1 into r5
-
 // compare the values of f0 and f1 to determine the greater value
 compare_f_values:
     // compare values by checking if one value is +/- infinity and the other is not the same
+    ldr r0, =f0             // load the address of f0 into r0
+    ldr r0, [r0]            // load the value of f0 into r0
     cmp r0, 0               // compare the result of asmIsInf to 0
     bgt f0_is_greater       // if the value is positive infinity, the other number must be equal or smaller
     blt f1_is_greater       // if the value is negative infinity, the other number must be equal or larger
+    ldr r0, =f1             // load the address of f1 into r0
+    ldr r0, [r0]            // load the value of f1 into r0
     cmp r0, 0               // compare the result of asmIsInf to 0
     bgt f1_is_greater       // if the value is positive infinity, the other number must be equal or smaller
     blt f0_is_greater       // if the value is negative infinity, the other number must be equal or larger
