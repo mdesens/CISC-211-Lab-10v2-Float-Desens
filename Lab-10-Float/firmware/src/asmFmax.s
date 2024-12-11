@@ -267,6 +267,7 @@ asmIsZero:
     push {r4-r11,LR}
 
     // compare the input value to the positive zero value
+    ldr r0, [r0]            // load the input value into r0
     ldr r1, =0x00000000      // 0x00000000 is the 32-bit representation of positive zero
     cmp r0, r1              // compare the input value to the positive zero value
     beq is_positive_zero    // if the input value is positive zero, return 1
@@ -320,6 +321,7 @@ asmIsInf:
     push {r4-r11,LR}
 
     // compare the input value to the positive infinity value
+    ldr r0, [r0]            // load the input value into r0
     ldr r1, =0x7F800000      // 0x7F800000 is the 32-bit representation of positive infinity
     cmp r0, r1              // compare the input value to the positive infinity value
     beq is_positive_inf     // if the input value is positive infinity, return 1
@@ -397,17 +399,15 @@ asmFmax:
 set_f0_and_f1:
     // unpack the f0 value
     ldr r4, =f0             // load the address of f0 into r4
-    ldr r5, [r0]            // load the f0 value into r5
-    str r5, [r4]            // store the f0 (param) value in f0 (global)
+    str r0, [r4]            // store the f0 (param) value in f0 (global)
 
     // unpack the f1 value
     ldr r4, =f1             // load the address of f1 into r4
-    ldr r5, [r1]            // load the f1 value into r5
-    str r5, [r4]            // store the f1 (param) value in f1 (global)
+    str r1, [r4]            // store the f1 (param) value in f1 (global)
 
 // check if the f0 value equals +/- infinity using asmIsInf
 is_f0_inf:
-    // since r0 already contains the address of f0, asmIsInf can use it to access the value of f0
+    ldr r0, =f0		        // load the address of f0 into r0, since asmIsInf uses r0 to access the value of f0
     bl asmIsInf             // call the asmIsInf function
     cmp r0, 0               // compare the result of asmIsInf to 0
     bgt f0_is_greater       // if the value is positive infinity, the other number must be equal or smaller
