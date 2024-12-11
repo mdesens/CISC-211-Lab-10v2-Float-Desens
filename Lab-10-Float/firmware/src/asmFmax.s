@@ -421,14 +421,6 @@ get_sign_bit_f1:
     ldr r1, =sb1            // load the address of sb1 into r1
     bl getSignBit           // call the getSignBit function
 
-// compare the sign bits of f0 and f1 to determine the sign bit of fMax and potentially which is the largest float if signs differ
-set_sign_bit_max:
-    // get the sign bit of f0
-    ldr r4, =sb0            // load the address of sb0 into r4
-    ldr r4, [r4]            // load the sign bit of f0 into r4
-    ldr r5, =sb1            // load the address of sb1 into r5
-    ldr r5, [r5]            // load the sign bit of f1 into r5
-
 // unpack the stored exponent of f0 using getExponent
 get_stored_exp_f0:
     ldr r0, =f0             // load the address of f0 into r0, since getExponent uses r0 to access the value of f0
@@ -489,19 +481,36 @@ compare_f_values:
     bgt f1_is_greater       // if the value is positive infinity, the other number must be equal or smaller
     blt f0_is_greater       // if the value is negative infinity, the other number must be equal or larger
     // compare values by checking if one value is +/- 0 and the other is not the same
+    ldr r4, =sb0            // load the address of sb0 into r4
+    ldr r4, [r4]            // load the sign bit of f0 into r4
+    ldr r5, =sb1            // load the address of sb1 into r5
+    ldr r5, [r5]            // load the sign bit of f1 into r5
     cmp r4, r5              // compare the sign bits of f0 and f1
     bgt f1_is_greater      // if the sign bit of f0 is greater, than it is 1 (negative), so the sign bit of fMax is 1 (negative) and f1 is greater
     blt f0_is_greater      // if the sign bit of f1 is greater, than it is 1 (negative), so the sign bit of fMax is 1 (negative) and f0 is greater
     ldr r4, =sbMax          // load the address of sbMax into r4
     str r5, [r4]            // store the either sign bit (sb0 or sb1) since they are the same, in sbMax
     // compare values by checking if the real exponent of one is greater than the other
+    ldr r4, =realExp0       // load the address of realExp0 into r4
+    ldr r4, [r4]            // load the real exponent of f0 into r4
+    ldr r5, =realExp1       // load the address of realExp1 into r5
+    ldr r5, [r5]            // load the real exponent of f1 into r5
     cmp r4, r5              
     bgt f0_is_greater       // if the real exponent of f0 is greater, the real exponent of fMax is the real exponent of f0 and f0 is greater
     blt f1_is_greater       // if the real exponent of f1 is greater, the real exponent of fMax is the real exponent of f1 and f1 is greater
+    ldr r4, =realExpMax     // load the address of realExpMax into r4
+    str r5, [r4]            // store the either real exponent (realExp0 or realExp1) since they are the same, in realExpMax
     // compare values by checking if the mantissa of one is greater than the other
+    ldr r4, =mant0          // load the address of mant0 into r4
+    ldr r4, [r4]            // load the mantissa with implied bit of f0 into r4
+    ldr r5, =mant1          // load the address of mant1 into r5
+    ldr r5, [r5]            // load the mantissa with implied bit of f1 into r5
     cmp r4, r5
     bgt f0_is_greater       // if the mantissa of f0 is greater, the mantissa of fMax is the mantissa of f0 and f0 is greater
     blt f1_is_greater       // if the mantissa of f1 is greater, the mantissa of fMax is the mantissa of f1 and f1 is greater
+    ldr r4, =mantMax        // load the address of mantMax into r4
+    str r5, [r4]            // store the either mantissa (mant0 or mant1) since they are the same, in mantMax
+    b restore_registers     // values are the same, restore the caller registers and return to the caller
 
 
 f0_is_greater:
